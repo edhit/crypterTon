@@ -1,19 +1,26 @@
+require("dotenv").config()
 const axios = require("axios")
 const moment = require("moment")
-require("dotenv").config()
+
+const Status = require("./helpers/status")
+
+const status = new Status()
 
 const coingecko = async ctx => {
   try {
-    let query = await ctx.db.General.findOne({ id: process.env.GENERAL_ID })
+    let coins = await status.coins()
+    let currency = await status.currency()
 
-    let crypto = await ctx.helpers.mark.crypto()
-    let currency = await ctx.helpers.mark.currency()
+    let query_general = await ctx.db.General.findOne({
+      id: process.env.GENERAL_ID,
+    })
+
     let options = {
       method: "GET",
       url:
         process.env.COINGECKO +
         "ids=" +
-        crypto.join(",") +
+        coins.join(",") +
         "&vs_currencies=" +
         currency.join(","),
       responseType: "json",
@@ -24,14 +31,12 @@ const coingecko = async ctx => {
       charset: "utf8",
       responseEncodig: "utf8",
     }
-    if (query == null) {
-      let wallet = await ctx.helpers.payments.createWallet()
-      // let address = await ctx.helpers.payments.createWallet(keyPair.keyPair)
+    if (query_general == null) {
       let request = await axios.request(options)
+
       let general = new ctx.db.General()
       general.id = process.env.GENERAL_ID
       general.coins = request.data
-      general.toncoin = wallet
       general.fee = 35
       general.currency = "rub"
       general.date = moment().valueOf()
@@ -39,12 +44,13 @@ const coingecko = async ctx => {
       console.log(request.data)
     } else {
       if (
-        moment(query.updatedAt).add("1", "m").valueOf() < moment().valueOf()
+        moment(query_general.updatedAt).add("1", "m").valueOf() <
+        moment().valueOf()
       ) {
         let request = await axios.request(options)
-        query.coins = request.data
-        query.date = moment().valueOf()
-        query.save()
+        query_general.coins = request.data
+        query_general.date = moment().valueOf()
+        query_general.save()
         console.log(request.data)
       }
     }
@@ -60,10 +66,10 @@ const boot = async (ctx, next) => {
   try {
     if (ctx.chat == undefined) throw "stop bot"
     // let handler = await ctx.helpers.handlerData(ctx);
-    let user = await ctx.db.User.findOne({
+    let query_user = await ctx.db.User.findOne({
       user: ctx.chat.id,
     })
-    if (user == null) {
+    if (query_user == null) {
       user = new ctx.db.User()
       user.user = ctx.chat.id
       user.username = ctx.chat.username
@@ -72,15 +78,15 @@ const boot = async (ctx, next) => {
       user.refferal = 0
       user.ban = 0
       user.role = "user"
-      user = await user.save()
+      query_user = user = await user.save()
     } else {
-      if (user.username != ctx.chat.username) {
-        user.username = ctx.chat.username
-        user = await user.save()
+      if (query_user.username != ctx.chat.username) {
+        query_user.username = ctx.chat.username
+        query_user = await user.save()
       }
     }
-
-    ctx.i18n.locale(user.language)
+    ctx.session.user = query_user
+    ctx.i18n.locale(query_user.language)
 
     await coingecko(ctx)
 

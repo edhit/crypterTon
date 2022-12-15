@@ -1,10 +1,13 @@
 const { Composer, Markup } = require("telegraf")
 const composer = new Composer()
 
+const Protect = require("./../helpers/protect")
+
+const protect = new Protect()
+
 composer.action(/search_(.+)/, async ctx => {
   try {
-    let update = await ctx.helpers.protect.callback(ctx)
-    if (typeof update != "object") return
+    if (typeof (await protect.callback(ctx)) != "object") return
 
     await ctx.scene.enter("search")
   } catch (e) {

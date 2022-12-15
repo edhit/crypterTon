@@ -1,10 +1,13 @@
 const { Composer, Markup } = require("telegraf")
 const composer = new Composer()
 
+const Protect = require("./../helpers/protect")
+
+const protect = new Protect()
+
 composer.action(/addproduct_(.+)/, async ctx => {
   try {
-    let update = await ctx.helpers.protect.callback(ctx)
-    if (typeof update != "object") return
+    if (typeof (await protect.callback(ctx)) != "object") return
 
     await ctx.scene.enter("addproduct")
   } catch (e) {
@@ -14,8 +17,7 @@ composer.action(/addproduct_(.+)/, async ctx => {
 
 composer.action(/myproducts_(.+)/, async ctx => {
   try {
-    let update = await ctx.helpers.protect.callback(ctx)
-    if (typeof update != "object") return
+    if (typeof (await protect.callback(ctx)) != "object") return
 
     await ctx.scene.enter("myproducts")
   } catch (e) {

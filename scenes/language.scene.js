@@ -1,22 +1,25 @@
 const { Composer, Scenes, Markup } = require("telegraf")
-const randomstring = require("randomstring")
+
+const Template = require("./../helpers/template")
+const Status = require("./../helpers/status")
+const Protect = require("./../helpers/protect")
+
+const template = new Template()
+const status = new Status()
+const protect = new Protect()
 
 const firstStep = new Composer()
 firstStep.on("callback_query", async ctx => {
   try {
+    await protect.new(ctx)
+
     let text = "language_select_scene_message"
+
+    let language = await status.language()
+
     let keyboard = []
-
-    ctx.session.callback_query = randomstring.generate({
-      length: 12,
-      charset: "alphabetic",
-    })
-
-    let language = await ctx.helpers.mark.language()
-
     let row = 3
     let length = Math.ceil(language.length / row)
-
     for (let i = 0; i < length; i++) {
       const c = language.slice(i * row, i * row + row)
       keyboard.push(
@@ -45,17 +48,17 @@ firstStep.on("callback_query", async ctx => {
 const secondStep = new Composer()
 secondStep.action(/language_(.+)/, async ctx => {
   try {
+    if (typeof (await protect.callback(ctx)) != "object") return
+    let callback = await protect.callback(ctx)
+
     let text = "language_scene_success_checks"
 
-    let update = await ctx.helpers.protect.callback(ctx)
-    if (typeof update != "object") return
-
-    let user = await ctx.db.User.findOne({
-      user: ctx.chat.id,
+    let query_user = await ctx.db.User.findOne({
+      _id: ctx.session.user._id,
     })
 
-    user.language = update.update[1]
-    await user.save()
+    query_user.language = callback.update[1]
+    await query_user.save()
 
     await ctx.editMessageText(ctx.i18n.t(text), {
       parse_mode: "HTML",
@@ -69,9 +72,9 @@ secondStep.action(/language_(.+)/, async ctx => {
 
 const scene = new Scenes.WizardScene("language", firstStep, secondStep)
 
-scene.command(["/cancel", "/start"], async ctx => {
+scene.command(["/cancel"], async ctx => {
   try {
-    await ctx.helpers.template.start(ctx)
+    // await ctx.helpers.template.start(ctx)
     return ctx.scene.leave()
   } catch (e) {
     console.error(e)

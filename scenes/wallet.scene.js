@@ -1,15 +1,19 @@
 const { Composer, Scenes, Markup } = require("telegraf")
-const randomstring = require("randomstring")
+
+const Template = require("./../helpers/template")
+const Payments = require("./../helpers/payments")
+const Protect = require("./../helpers/protect")
+
+const template = new Template()
+const payments = new Payments()
+const protect = new Protect()
 
 const firstStep = new Composer()
 firstStep.on("callback_query", async ctx => {
   try {
-    let text = "wallet_scene_message"
+    await protect.new(ctx)
 
-    ctx.session.callback_query = randomstring.generate({
-      length: 12,
-      charset: "alphabetic",
-    })
+    let text = "wallet_scene_message"
 
     await ctx.editMessageText(ctx.i18n.t(text), {
       parse_mode: "HTML",
@@ -27,18 +31,18 @@ secondStep.on("text", async ctx => {
     let text = "wallet_scene_success_checks"
     let input = ctx.message.text
 
-    let query = await ctx.db.User.findOne({
-      user: ctx.chat.id,
+    let query_user = await ctx.db.User.findOne({
+      _id: ctx.session.user._id,
     })
 
-    if ((await ctx.helpers.payments.getBalance(input)) == undefined) {
+    if ((await payments.getBalance(input)) == undefined) {
       text = "wallet_scene_incorrect_error_checks"
       await ctx.replyWithHTML(ctx.i18n.t(text))
       return
     }
 
-    query.wallet = input
-    await query.save()
+    query_user.wallet = input
+    await query_user.save()
 
     await ctx.replyWithHTML(ctx.i18n.t(text))
 
@@ -50,9 +54,9 @@ secondStep.on("text", async ctx => {
 
 const scene = new Scenes.WizardScene("wallet", firstStep, secondStep)
 
-scene.command(["/cancel", "/start"], async ctx => {
+scene.command(["/cancel"], async ctx => {
   try {
-    await ctx.helpers.template.start(ctx)
+    await template.start(ctx)
     return ctx.scene.leave()
   } catch (e) {
     console.error(e)

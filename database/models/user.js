@@ -8,7 +8,6 @@ const schema = new Schema(
     language: { type: String, lowercase: true, trim: true },
     currency: { type: String, lowercase: true, trim: true },
     role: { type: String, lowercase: true, trim: true },
-    rate: Array,
     refferal: Number,
     ban: Number,
   },

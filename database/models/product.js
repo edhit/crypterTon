@@ -2,12 +2,13 @@ const { Schema } = require("mongoose")
 
 const schema = new Schema(
   {
-    user: Number,
-    shortId: String,
+    user: { type: Schema.Types.ObjectId, ref: "User" },
+    uuid: String,
     name: { type: String, trim: true },
     description: { type: String, trim: true },
     tags: { type: String, lowercase: true, trim: true },
     price: Number,
+    count: Number,
     media: Array,
     checks: { type: String, lowercase: true, trim: true },
     currency: { type: String, lowercase: true, trim: true },

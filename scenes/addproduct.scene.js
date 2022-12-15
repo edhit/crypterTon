@@ -1,17 +1,24 @@
 const { Composer, Scenes, Markup } = require("telegraf")
 const validator = require("validator")
-const randomstring = require("randomstring")
 const moment = require("moment")
+const { v4: uuidv4 } = require("uuid")
+
+const Template = require("./../helpers/template")
+const Protect = require("./../helpers/protect")
+const Status = require("./../helpers/status")
+const Checker = require("./../helpers/checker")
+
+const template = new Template()
+const protect = new Protect()
+const status = new Status()
+const checker = new Checker()
 
 const firstStep = new Composer()
 firstStep.on("callback_query", async ctx => {
   try {
-    let text = "addproduct_scene_photo_message"
+    await protect.new(ctx)
 
-    ctx.session.callback_query = randomstring.generate({
-      length: 12,
-      charset: "alphabetic",
-    })
+    let text = "addproduct_scene_photo_message"
 
     ctx.session.startdate = moment()
     ctx.wizard.state.data = {}
@@ -177,22 +184,21 @@ fifthStep.on("text", async ctx => {
 const sixthStep = new Composer()
 sixthStep.on("text", async ctx => {
   try {
-    let text = "addproduct_currency_product_message"
+    let text = "addproduct_scene_currency_product_message"
     let input = ctx.message.text
+
+    let currency = await status.currency()
+
     let keyboard = []
-
-    let currency = await ctx.helpers.mark.currency()
-
     let row = 3
     let length = Math.ceil(currency.length / row)
-
     for (let i = 0; i < length; i++) {
       const c = currency.slice(i * row, i * row + row)
       keyboard.push(
         c.map(name =>
           Markup.button.callback(
             name,
-            "currency_" + name + "_" + ctx.session.callback_query
+            "currencies_" + name + "_" + ctx.session.callback_query
           )
         )
       )
@@ -219,12 +225,30 @@ sixthStep.on("text", async ctx => {
 })
 
 const seventhStep = new Composer()
-seventhStep.action(/currency_(.+)/, async ctx => {
+seventhStep.action(/currencies_(.+)/, async ctx => {
   try {
-    let text = "addproduct_confirm_product_message"
+    let text = "addproduct_scene_count_product_message"
 
-    let update = await ctx.helpers.protect.callback(ctx)
-    if (typeof update != "object") return
+    if (typeof (await protect.callback(ctx)) != "object") return
+    let callback = await protect.callback(ctx)
+
+    ctx.wizard.state.data.currency = callback.update[1]
+
+    await ctx.editMessageText(ctx.i18n.t(text), {
+      parse_mode: "HTML",
+    })
+
+    return ctx.wizard.next()
+  } catch (e) {
+    console.log(e)
+  }
+})
+
+const eighthStep = new Composer()
+eighthStep.on("text", async ctx => {
+  try {
+    let text = "addproduct_scene_confirm_product_message"
+    let input = ctx.message.text
 
     let keyboard = Markup.inlineKeyboard([
       [
@@ -239,9 +263,15 @@ seventhStep.action(/currency_(.+)/, async ctx => {
       ],
     ])
 
-    ctx.wizard.state.data.currency = update.update[1]
+    if (!validator.isNumeric(input)) {
+      text = "addproduct_scene_count_numeric_error_checks"
+      await ctx.replyWithHTML(ctx.i18n.t(text))
+      return
+    }
 
-    await ctx.editMessageText(ctx.i18n.t(text), {
+    ctx.wizard.state.data.count = input
+
+    await ctx.replyWithHTML(ctx.i18n.t(text), {
       reply_markup: keyboard.reply_markup,
     })
 
@@ -251,39 +281,33 @@ seventhStep.action(/currency_(.+)/, async ctx => {
   }
 })
 
-const eighthStep = new Composer()
-eighthStep.action(/confirm_(yes|no)_(.+)/, async ctx => {
+const ninthStep = new Composer()
+ninthStep.action(/confirm_(yes|no)_(.+)/, async ctx => {
   try {
+    if (typeof (await protect.callback(ctx)) != "object") return
+    let callback = await protect.callback(ctx)
+
     let text
     let checks = []
-
-    let update = await ctx.helpers.protect.callback(ctx)
-    if (typeof update != "object") return
-
-    if (update.update[1] == "yes") {
-      if ((await ctx.helpers.phone.match(ctx.wizard.state.data.name)) != null)
+    if (callback.update[1] == "yes") {
+      if ((await checker.phone(ctx.wizard.state.data.name)) != null)
         checks.push(1)
-      if (
-        (await ctx.helpers.phone.match(ctx.wizard.state.data.description)) !=
-        null
-      )
+      if ((await checker.phone(ctx.wizard.state.data.description)) != null)
         checks.push(2)
-      if ((await ctx.helpers.phone.match(ctx.wizard.state.data.tags)) != null)
+      if ((await checker.phone(ctx.wizard.state.data.tags)) != null)
         checks.push(3)
 
-      if ((await ctx.helpers.url.match(ctx.wizard.state.data.name)) != null)
+      if ((await checker.url(ctx.wizard.state.data.name)) != null)
         checks.push(4)
-      if (
-        (await ctx.helpers.url.match(ctx.wizard.state.data.description)) != null
-      )
+      if ((await checker.url(ctx.wizard.state.data.description)) != null)
         checks.push(5)
-      if ((await ctx.helpers.url.match(ctx.wizard.state.data.tags)) != null)
+      if ((await checker.url(ctx.wizard.state.data.tags)) != null)
         checks.push(6)
 
       if (ctx.session.startdate.add("20", "h").valueOf() > moment().valueOf()) {
         let product = new ctx.db.Product()
-        product.user = ctx.chat.id
-        product.shortId = randomstring.generate(7)
+        product.user = ctx.session.user._id
+        product.uuid = uuidv4()
         product.name = ctx.wizard.state.data.name.replace(/  +/g, " ")
         product.description = ctx.wizard.state.data.description.replace(
           /  +/g,
@@ -292,6 +316,7 @@ eighthStep.action(/confirm_(yes|no)_(.+)/, async ctx => {
         product.tags = ctx.wizard.state.data.tags.replace(/  +/g, " ")
         product.price = ctx.wizard.state.data.price.replace(/  +/g, " ")
         product.media = ctx.wizard.state.data.media
+        product.count = ctx.wizard.state.data.count
         product.status = 1
         product.currency = ctx.wizard.state.data.currency
         product.checks = checks.length > 0 ? checks.join(",") : "0"
@@ -322,12 +347,13 @@ const scene = new Scenes.WizardScene(
   fifthStep,
   sixthStep,
   seventhStep,
-  eighthStep
+  eighthStep,
+  ninthStep
 )
 
-scene.command(["/cancel", "/start"], async ctx => {
+scene.command(["/cancel"], async ctx => {
   try {
-    await ctx.helpers.template.start(ctx)
+    // await ctx.helpers.template.start(ctx)
     return ctx.scene.leave()
   } catch (e) {
     console.error(e)
