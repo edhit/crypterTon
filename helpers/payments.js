@@ -24,9 +24,9 @@ class Payments {
     }
   }
 
-  async createWallet(words = false) {
+  async createWallet(word = false) {
     try {
-      words = words == false ? await tonMnemonic.generateMnemonic() : words
+      words = word == false ? await tonMnemonic.generateMnemonic() : word
 
       let seed = await tonMnemonic.mnemonicToSeed(words)
 

@@ -389,7 +389,6 @@ class Template {
         product: ctx.session.ids[obj.id]._id,
         user: ctx.session.user._id,
       })
-
       let order
       let fee =
         query_general.fee /
@@ -397,11 +396,12 @@ class Template {
         parseInt(process.env.FEE)
 
       if (query_order == null) {
+        let toncoin = await payments.createWallet()
         order = ctx.db.Order()
         order.user = ctx.session.user._id
         order.product = ctx.session.ids[obj.id]._id
         order.uuid = uuidv4()
-        order.toncoin = await payments.createWallet()
+        order.toncoin = toncoin
         order.amount = (
           query_product.price /
             query_general.coins["the-open-network"][query_product.currency] +
@@ -423,12 +423,11 @@ class Template {
         order.delete()
         return this.transaction(ctx, obj)
       } else {
-        let transactions = await payments.getTransactions(order.toncoin.wallet)
-        for (let tx of transactions) {
-          console.log(tx.in_msg.message)
-        }
+        // let transactions = await payments.getTransactions(order.toncoin.wallet)
+        // for (let tx of transactions) {
+        //   console.log(tx.in_msg.message)
+        // }
       }
-
       keyboard.reply_markup.inline_keyboard[0].push(
         Markup.button.url(
           ctx.i18n.t("pay"),

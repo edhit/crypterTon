@@ -38,6 +38,4 @@ bot.use(require("./composers/search.composer"))
 bot.use(require("./composers/wishlist.composer"))
 bot.use(Composer.acl(admin, require("./composers/admin.composer")))
 
-bot.launch().then(() => {
-  console.log("bot running")
-})
+bot.launch()

@@ -13,8 +13,9 @@ var func = function (files) {
     files[i] = files[i].replace(".js", "")
     // console.log(files[i]);
     if (!exception.includes(files[i])) {
-      files[i] = capitalizeFirstLetter(files[i])
-      exports[files[i].replace("/", "_")] = require("./" + files[i])
+      exports[
+        capitalizeFirstLetter(files[i]).replace("/", "_")
+      ] = require("./" + files[i])
     }
   }
 }
