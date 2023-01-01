@@ -1,6 +1,7 @@
 const { Composer, Scenes, Markup } = require("telegraf")
+const mongoose = require("mongoose")
 
-const Template = require("./../template/product.template")
+const Template = require("./../template/sales.template")
 
 const firstStep = new Composer()
 firstStep.on("callback_query", async ctx => {
@@ -8,24 +9,25 @@ firstStep.on("callback_query", async ctx => {
     const template = new Template(ctx)
     await template.protect.new(template.ctx)
 
-    template.query.wishlist = await template.ctx.db.Wishlist.find({
+    template.query.product = await template.ctx.db.Product.find({
       user: template.ctx.session.user._id,
-    })
-      .sort({ createdAt: "desc" })
-      .select("product")
-      .populate({
-        path: "product",
-        select: "_id",
-      })
+    }).select("_id")
 
     let ids = []
-    template.query.wishlist.filter((item, index) =>
-      ids.push(template.query.wishlist[index].product)
+    template.query.product.filter((item, index) =>
+      ids.push(mongoose.Types.ObjectId(template.query.product[index]._id))
     )
 
-    template.ctx.session.ids = ids
+    template.query.order = await template.ctx.db.Order.find({
+      product: { $in: ids },
+      payment_status: { $ne: 0 },
+    })
+      .select("_id")
+      .sort({ createdAt: "desc" })
 
-    if (ids.length != 0) {
+    template.ctx.session.ids = template.query.order
+
+    if (template.query.order.length != 0) {
       template.obj = {
         id: 0,
         media: 0,
@@ -34,9 +36,9 @@ firstStep.on("callback_query", async ctx => {
       await template.view()
       return template.ctx.wizard.next()
     }
-    template.text = "wishlist_scene_nothingfound_error_checks"
+    template.text = "sales_scene_nothingfound_error_checks"
 
-    await template.replyWithHTML()
+    await template.editMessageText()
   } catch (e) {
     console.error(e)
     const template = new Template(ctx)
@@ -58,6 +60,6 @@ secondStep.on("callback_query", async ctx => {
   }
 })
 
-const scene = new Scenes.WizardScene("wishlist", firstStep, secondStep)
+const scene = new Scenes.WizardScene("sales", firstStep, secondStep)
 
 module.exports = scene

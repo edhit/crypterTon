@@ -3,35 +3,26 @@ const validator = require("validator")
 const moment = require("moment")
 const { v4: uuidv4 } = require("uuid")
 
-const Template = require("./../helpers/template")
-const Protect = require("./../helpers/protect")
-const Status = require("./../helpers/status")
-const Checker = require("./../helpers/checker")
-
-const template = new Template()
-const protect = new Protect()
-const status = new Status()
-const checker = new Checker()
+const Template = require("./../template/template")
 
 const firstStep = new Composer()
 firstStep.on("callback_query", async ctx => {
   try {
-    await protect.new(ctx)
+    const template = new Template(ctx)
+    await template.protect.new(ctx)
 
-    let text = "addproduct_scene_photo_message"
+    template.text = "addproduct_scene_photo_message"
 
-    ctx.session.startdate = moment()
-    ctx.wizard.state.data = {}
+    template.ctx.session.startdate = moment()
+    template.ctx.wizard.state.data = {}
 
-    if (ctx.wizard.state.data.media == undefined) {
-      ctx.wizard.state.data.media = []
+    if (template.ctx.wizard.state.data.media == undefined) {
+      template.ctx.wizard.state.data.media = []
     }
 
-    await ctx.editMessageText(ctx.i18n.t(text), {
-      parse_mode: "HTML",
-    })
+    await template.replyWithHTML()
 
-    return ctx.wizard.next()
+    return template.ctx.wizard.next()
   } catch (e) {
     console.error(e)
   }
@@ -40,27 +31,25 @@ firstStep.on("callback_query", async ctx => {
 const secondStep = new Composer()
 secondStep.on("photo", async ctx => {
   try {
-    let text = "addproduct_scene_photo_success_checks"
-    let keyboard = Markup.keyboard([["upload"]])
+    const template = new Template(ctx)
+
+    template.text = "addproduct_scene_photo_success_checks"
+    template.keyboard = Markup.keyboard([["upload"]])
       .oneTime()
       .resize()
 
-    let file = ctx.update.message.photo
+    let file = template.ctx.update.message.photo
     let fileId = file[file.length - 1].file_id
 
-    if (ctx.wizard.state.data.media.length > 7) {
-      text = "addproduct_scene_media_many_error_checks"
-      await ctx.replyWithHTML(ctx.i18n.t(text), {
-        reply_markup: keyboard.reply_markup,
-      })
+    if (template.ctx.wizard.state.data.media.length > 7) {
+      template.text = "addproduct_scene_media_many_error_checks"
+      await template.replyWithHTML()
       return
     }
 
-    ctx.wizard.state.data.media.push({ fileId: fileId, type: "photo" })
+    template.ctx.wizard.state.data.media.push({ fileId: fileId, type: "photo" })
 
-    await ctx.replyWithHTML(ctx.i18n.t(text), {
-      reply_markup: keyboard.reply_markup,
-    })
+    await template.replyWithHTML()
     return
   } catch (e) {
     console.log(e)
@@ -69,27 +58,25 @@ secondStep.on("photo", async ctx => {
 
 secondStep.on("video", async ctx => {
   try {
-    let text = "addproduct_scene_video_success_checks"
-    let keyboard = Markup.keyboard([["upload"]])
+    const template = new Template(ctx)
+
+    template.text = "addproduct_scene_video_success_checks"
+    template.keyboard = Markup.keyboard([["upload"]])
       .oneTime()
       .resize()
 
-    let file = ctx.update.message.video
+    let file = template.ctx.update.message.video
     let fileId = file.file_id
 
-    if (ctx.wizard.state.data.media.length > 9) {
-      text = "addproduct_scene_media_many_error_checks"
-      await ctx.replyWithHTML(ctx.i18n.t(text), {
-        reply_markup: keyboard.reply_markup,
-      })
+    if (template.ctx.wizard.state.data.media.length > 9) {
+      template.text = "addproduct_scene_media_many_error_checks"
+      await template.replyWithHTML()
       return
     }
 
-    ctx.wizard.state.data.media.push({ fileId: fileId, type: "video" })
+    template.ctx.wizard.state.data.media.push({ fileId: fileId, type: "video" })
 
-    await ctx.replyWithHTML(ctx.i18n.t(text), {
-      reply_markup: keyboard.reply_markup,
-    })
+    await template.replyWithHTML()
     return
   } catch (e) {
     console.log(e)
@@ -98,21 +85,21 @@ secondStep.on("video", async ctx => {
 
 secondStep.hears("upload", async ctx => {
   try {
-    let text = "addproduct_scene_name_message"
+    const template = new Template(ctx)
 
-    if (ctx.wizard.state.data.media == undefined) {
-      text = "addproduct_scene_photo_empty_error_checks"
-      await ctx.replyWithHTML(ctx.i18n.t(text), {
-        reply_markup: keyboard.reply_markup,
-      })
+    template.text = "addproduct_scene_name_message"
+
+    if (template.ctx.wizard.state.data.media.length == 0) {
+      template.text = "addproduct_scene_photo_empty_error_checks"
+      await template.replyWithHTML()
       return
     }
 
-    await ctx.replyWithHTML(ctx.i18n.t(text), {
+    await template.ctx.replyWithHTML(template.ctx.i18n.t(template.text), {
       reply_markup: { remove_keyboard: true },
     })
 
-    return ctx.wizard.next()
+    return template.ctx.wizard.next()
   } catch (e) {
     console.log(e)
   }
@@ -121,19 +108,21 @@ secondStep.hears("upload", async ctx => {
 const thirdStep = new Composer()
 thirdStep.on("text", async ctx => {
   try {
-    let text = "addproduct_scene_description_message"
-    let input = ctx.message.text
+    const template = new Template(ctx)
+
+    template.text = "addproduct_scene_description_message"
+    let input = template.ctx.message.text
 
     if (!validator.isLength(input, { min: 1, max: 100 })) {
-      text = "addproduct_scene_name_length_error_checks"
-      await ctx.replyWithHTML(ctx.i18n.t(text))
+      template.text = "addproduct_scene_name_length_error_checks"
+      await template.replyWithHTML()
       return
     }
-    ctx.wizard.state.data.name = input
+    template.ctx.wizard.state.data.name = input
 
-    await ctx.replyWithHTML(ctx.i18n.t(text))
+    await template.replyWithHTML()
 
-    return ctx.wizard.next()
+    return template.ctx.wizard.next()
   } catch (e) {
     console.error(e)
   }
@@ -142,19 +131,21 @@ thirdStep.on("text", async ctx => {
 const fourthStep = new Composer()
 fourthStep.on("text", async ctx => {
   try {
-    let text = "addproduct_scene_tags_message"
-    let input = ctx.message.text
+    const template = new Template(ctx)
+
+    template.text = "addproduct_scene_tags_message"
+    let input = template.ctx.message.text
 
     if (!validator.isLength(input, { min: 1, max: 255 })) {
-      text = "addproduct_scene_description_length_error_checks"
-      await ctx.replyWithHTML(ctx.i18n.t(text))
+      template.text = "addproduct_scene_description_length_error_checks"
+      await template.replyWithHTML()
       return
     }
-    ctx.wizard.state.data.description = input
+    template.ctx.wizard.state.data.description = input
 
-    await ctx.replyWithHTML(ctx.i18n.t(text))
+    await template.replyWithHTML()
 
-    return ctx.wizard.next()
+    return template.ctx.wizard.next()
   } catch (e) {
     console.error(e)
   }
@@ -163,19 +154,21 @@ fourthStep.on("text", async ctx => {
 const fifthStep = new Composer()
 fifthStep.on("text", async ctx => {
   try {
-    let text = "addproduct_scene_price_message"
-    let input = ctx.message.text
+    const template = new Template(ctx)
+
+    template.text = "addproduct_scene_price_message"
+    let input = template.ctx.message.text
 
     if (input.split(" ").length > 10) {
-      text = "addproduct_scene_tags_length_error_checks"
-      await ctx.replyWithHTML(ctx.i18n.t(text))
+      template.text = "addproduct_scene_tags_length_error_checks"
+      await template.replyWithHTML()
       return
     }
-    ctx.wizard.state.data.tags = input
+    template.ctx.wizard.state.data.tags = input
 
-    await ctx.replyWithHTML(ctx.i18n.t(text))
+    await template.replyWithHTML()
 
-    return ctx.wizard.next()
+    return template.ctx.wizard.next()
   } catch (e) {
     console.error(e)
   }
@@ -184,41 +177,65 @@ fifthStep.on("text", async ctx => {
 const sixthStep = new Composer()
 sixthStep.on("text", async ctx => {
   try {
-    let text = "addproduct_scene_currency_product_message"
-    let input = ctx.message.text
+    const template = new Template(ctx)
 
-    let currency = await status.currency()
+    template.text = "addproduct_scene_delivery_product_message"
+    let input = template.ctx.message.text
 
-    let keyboard = []
+    if (!validator.isFloat(input) || !validator.isNumeric(input)) {
+      template.text = "addproduct_scene_price_numericfloat_error_checks"
+      await template.replyWithHTML()
+      return
+    }
+
+    template.ctx.wizard.state.data.price = input
+
+    await template.replyWithHTML()
+
+    return template.ctx.wizard.next()
+  } catch (e) {
+    console.error(e)
+  }
+})
+
+const deliveryStep = new Composer()
+deliveryStep.on("text", async ctx => {
+  try {
+    const template = new Template(ctx)
+
+    template.text = "addproduct_scene_currency_product_message"
+    let input = template.ctx.message.text
+
+    let currency = await template.status.currency()
+
+    template.keyboard = []
     let row = 3
     let length = Math.ceil(currency.length / row)
     for (let i = 0; i < length; i++) {
       const c = currency.slice(i * row, i * row + row)
-      keyboard.push(
+      template.keyboard.push(
         c.map(name =>
           Markup.button.callback(
             name,
-            "currencies_" + name + "_" + ctx.session.callback_query
+            "currencies_" + name + "_" + template.ctx.session.callback_query
           )
         )
       )
     }
 
-    keyboard = Markup.inlineKeyboard(keyboard)
+    template.keyboard = Markup.inlineKeyboard(template.keyboard)
 
     if (!validator.isFloat(input) || !validator.isNumeric(input)) {
-      text = "addproduct_scene_price_numericfloat_error_checks"
-      await ctx.replyWithHTML(ctx.i18n.t(text))
+      template.text = "addproduct_scene_delivery_numericfloat_error_checks"
+      await template.replyWithHTML()
       return
     }
 
-    ctx.wizard.state.data.price = input
+    template.ctx.wizard.state.data.delivery = input
 
-    await ctx.replyWithHTML(ctx.i18n.t(text), {
-      reply_markup: keyboard.reply_markup,
-    })
+    await template.replyWithHTML()
 
-    return ctx.wizard.next()
+    return template.ctx.wizard.next()
   } catch (e) {
     console.error(e)
   }
@@ -227,18 +244,18 @@ sixthStep.on("text", async ctx => {
 const seventhStep = new Composer()
 seventhStep.action(/currencies_(.+)/, async ctx => {
   try {
-    let text = "addproduct_scene_count_product_message"
+    const template = new Template(ctx)
 
-    if (typeof (await protect.callback(ctx)) != "object") return
-    let callback = await protect.callback(ctx)
+    template.text = "addproduct_scene_count_product_message"
 
-    ctx.wizard.state.data.currency = callback.update[1]
+    if (typeof (await template.protect.callback(ctx)) != "object") return
+    let callback = await template.protect.callback(ctx)
 
-    await ctx.editMessageText(ctx.i18n.t(text), {
-      parse_mode: "HTML",
-    })
+    template.ctx.wizard.state.data.currency = callback.update[1]
 
-    return ctx.wizard.next()
+    await template.editMessageText()
+
+    return template.ctx.wizard.next()
   } catch (e) {
     console.log(e)
   }
@@ -247,35 +264,35 @@ seventhStep.action(/currencies_(.+)/, async ctx => {
 const eighthStep = new Composer()
 eighthStep.on("text", async ctx => {
   try {
-    let text = "addproduct_scene_confirm_product_message"
-    let input = ctx.message.text
+    const template = new Template(ctx)
 
-    let keyboard = Markup.inlineKeyboard([
+    template.text = "addproduct_scene_confirm_product_message"
+    let input = template.ctx.message.text
+
+    template.keyboard = Markup.inlineKeyboard([
       [
         Markup.button.callback(
-          ctx.i18n.t("yes"),
-          "confirm_yes_" + ctx.session.callback_query
+          template.ctx.i18n.t("yes"),
+          "confirm_yes_" + template.ctx.session.callback_query
         ),
         Markup.button.callback(
-          ctx.i18n.t("no"),
-          "confirm_no_" + ctx.session.callback_query
+          template.ctx.i18n.t("no"),
+          "confirm_no_" + template.ctx.session.callback_query
         ),
       ],
     ])
 
     if (!validator.isNumeric(input)) {
-      text = "addproduct_scene_count_numeric_error_checks"
-      await ctx.replyWithHTML(ctx.i18n.t(text))
+      template.text = "addproduct_scene_count_numeric_error_checks"
+      await template.replyWithHTML()
       return
     }
 
-    ctx.wizard.state.data.count = input
+    template.ctx.wizard.state.data.count = input
 
-    await ctx.replyWithHTML(ctx.i18n.t(text), {
-      reply_markup: keyboard.reply_markup,
-    })
+    await template.replyWithHTML()
 
-    return ctx.wizard.next()
+    return template.ctx.wizard.next()
   } catch (e) {
     console.log(e)
   }
@@ -284,55 +301,83 @@ eighthStep.on("text", async ctx => {
 const ninthStep = new Composer()
 ninthStep.action(/confirm_(yes|no)_(.+)/, async ctx => {
   try {
-    if (typeof (await protect.callback(ctx)) != "object") return
-    let callback = await protect.callback(ctx)
+    const template = new Template(ctx)
+    if (typeof (await template.protect.callback(ctx)) != "object") return
+    let callback = await template.protect.callback(ctx)
 
-    let text
     let checks = []
     if (callback.update[1] == "yes") {
-      if ((await checker.phone(ctx.wizard.state.data.name)) != null)
+      if (
+        (await template.checker.phone(template.ctx.wizard.state.data.name)) !=
+        null
+      )
         checks.push(1)
-      if ((await checker.phone(ctx.wizard.state.data.description)) != null)
+      if (
+        (await template.checker.phone(
+          template.ctx.wizard.state.data.description
+        )) != null
+      )
         checks.push(2)
-      if ((await checker.phone(ctx.wizard.state.data.tags)) != null)
+      if (
+        (await template.checker.phone(template.ctx.wizard.state.data.tags)) !=
+        null
+      )
         checks.push(3)
 
-      if ((await checker.url(ctx.wizard.state.data.name)) != null)
+      if (
+        (await template.checker.url(template.ctx.wizard.state.data.name)) !=
+        null
+      )
         checks.push(4)
-      if ((await checker.url(ctx.wizard.state.data.description)) != null)
+      if (
+        (await template.checker.url(
+          template.ctx.wizard.state.data.description
+        )) != null
+      )
         checks.push(5)
-      if ((await checker.url(ctx.wizard.state.data.tags)) != null)
+      if (
+        (await template.checker.url(template.ctx.wizard.state.data.tags)) !=
+        null
+      )
         checks.push(6)
 
-      if (ctx.session.startdate.add("20", "h").valueOf() > moment().valueOf()) {
-        let product = new ctx.db.Product()
-        product.user = ctx.session.user._id
+      if (
+        template.ctx.session.startdate.add("20", "h").valueOf() >
+        moment().valueOf()
+      ) {
+        let product = new template.ctx.db.Product()
+        product.user = template.ctx.session.user._id
         product.uuid = uuidv4()
-        product.name = ctx.wizard.state.data.name.replace(/  +/g, " ")
-        product.description = ctx.wizard.state.data.description.replace(
+        product.name = template.ctx.wizard.state.data.name.replace(/  +/g, " ")
+        product.description =
+          template.ctx.wizard.state.data.description.replace(/  +/g, " ")
+        product.tags = template.ctx.wizard.state.data.tags.replace(/  +/g, " ")
+        product.price = template.ctx.wizard.state.data.price.replace(
           /  +/g,
           " "
         )
-        product.tags = ctx.wizard.state.data.tags.replace(/  +/g, " ")
-        product.price = ctx.wizard.state.data.price.replace(/  +/g, " ")
-        product.media = ctx.wizard.state.data.media
-        product.count = ctx.wizard.state.data.count
-        product.status = 1
-        product.currency = ctx.wizard.state.data.currency
+        product.delivery = template.ctx.wizard.state.data.delivery.replace(
+          /  +/g,
+          " "
+        )
+        product.media = template.ctx.wizard.state.data.media
+        product.count = template.ctx.wizard.state.data.count
+        product.status = 0
+        product.currency = template.ctx.wizard.state.data.currency
         product.checks = checks.length > 0 ? checks.join(",") : "0"
         console.log(product)
         await product.save()
-        text = "addproduct_scene_success_checks"
+        template.text = "addproduct_scene_success_checks"
       } else {
-        text = "addproduct_scene_alotoftime_error_checks"
+        template.text = "addproduct_scene_alotoftime_error_checks"
       }
     } else {
-      text = "addproduct_scene_cancel_checks"
+      template.text = "addproduct_scene_cancel_checks"
     }
 
-    await ctx.editMessageText(ctx.i18n.t(text))
+    await template.editMessageText()
 
-    return ctx.scene.leave()
+    return template.ctx.scene.leave()
   } catch (e) {
     console.error(e)
   }
@@ -346,18 +391,10 @@ const scene = new Scenes.WizardScene(
   fourthStep,
   fifthStep,
   sixthStep,
+  deliveryStep,
   seventhStep,
   eighthStep,
   ninthStep
 )
-
-scene.command(["/cancel"], async ctx => {
-  try {
-    // await ctx.helpers.template.start(ctx)
-    return ctx.scene.leave()
-  } catch (e) {
-    console.error(e)
-  }
-})
 
 module.exports = scene

@@ -5,8 +5,8 @@ module.exports = {
       script: "./index.js",
     },
     {
-      name: "transaction",
-      script: "./transaction.js",
+      name: "coingecko",
+      script: "./coingecko.js",
     },
   ],
 }

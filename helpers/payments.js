@@ -1,6 +1,5 @@
 require("dotenv").config()
 const TonWeb = require("tonweb")
-const tonMnemonic = require("tonweb-mnemonic")
 const tonweb = new TonWeb(
   new TonWeb.HttpProvider(process.env.TONCOIN, {
     apiKey: process.env.TONCOIN_API,
@@ -24,14 +23,11 @@ class Payments {
     }
   }
 
-  async createWallet(word = false) {
+  async createWallet() {
     try {
-      words = word == false ? await tonMnemonic.generateMnemonic() : word
-
-      let seed = await tonMnemonic.mnemonicToSeed(words)
-
-      let keyPair = await TonWeb.utils.nacl.sign.keyPair.fromSeed(seed)
-      let wallet = tonweb.wallet.create({ publicKey: keyPair.publicKey })
+      let nacl = TonWeb.utils.nacl
+      let keyPair = nacl.sign.keyPair()
+      let wallet = await tonweb.wallet.create({ publicKey: keyPair.publicKey })
       wallet = await wallet.getAddress()
 
       return {
@@ -79,6 +75,14 @@ class Payments {
   async toNano(amount) {
     try {
       return TonWeb.utils.toNano(amount.toString())
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  async fromNano(amount) {
+    try {
+      return TonWeb.utils.fromNano(amount.toString())
     } catch (e) {
       console.log(e)
     }

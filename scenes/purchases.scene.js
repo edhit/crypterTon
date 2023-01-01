@@ -1,6 +1,6 @@
 const { Composer, Scenes, Markup } = require("telegraf")
 
-const Template = require("./../template/product.template")
+const Template = require("./../template/purchases.template")
 
 const firstStep = new Composer()
 firstStep.on("callback_query", async ctx => {
@@ -8,8 +8,9 @@ firstStep.on("callback_query", async ctx => {
     const template = new Template(ctx)
     await template.protect.new(template.ctx)
 
-    template.query.wishlist = await template.ctx.db.Wishlist.find({
+    template.query.order = await template.ctx.db.Order.find({
       user: template.ctx.session.user._id,
+      payment_status: { $ne: 0 },
     })
       .sort({ createdAt: "desc" })
       .select("product")
@@ -19,8 +20,8 @@ firstStep.on("callback_query", async ctx => {
       })
 
     let ids = []
-    template.query.wishlist.filter((item, index) =>
-      ids.push(template.query.wishlist[index].product)
+    template.query.order.filter((item, index) =>
+      ids.push(template.query.order[index].product)
     )
 
     template.ctx.session.ids = ids
@@ -34,9 +35,9 @@ firstStep.on("callback_query", async ctx => {
       await template.view()
       return template.ctx.wizard.next()
     }
-    template.text = "wishlist_scene_nothingfound_error_checks"
+    template.text = "purchases_scene_nothingfound_error_checks"
 
-    await template.replyWithHTML()
+    await template.editMessageText()
   } catch (e) {
     console.error(e)
     const template = new Template(ctx)
@@ -58,6 +59,6 @@ secondStep.on("callback_query", async ctx => {
   }
 })
 
-const scene = new Scenes.WizardScene("wishlist", firstStep, secondStep)
+const scene = new Scenes.WizardScene("purchases", firstStep, secondStep)
 
 module.exports = scene

@@ -8,6 +8,7 @@ const schema = new Schema(
     description: { type: String, trim: true },
     tags: { type: String, lowercase: true, trim: true },
     price: Number,
+    delivery: Number,
     count: Number,
     media: Array,
     checks: { type: String, lowercase: true, trim: true },

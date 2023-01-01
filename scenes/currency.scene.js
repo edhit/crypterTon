@@ -1,44 +1,36 @@
 const { Composer, Scenes, Markup } = require("telegraf")
 
-const Template = require("./../helpers/template")
-const Status = require("./../helpers/status")
-const Protect = require("./../helpers/protect")
-
-const template = new Template()
-const status = new Status()
-const protect = new Protect()
+const Template = require("./../template/template")
 
 const firstStep = new Composer()
 firstStep.on("callback_query", async ctx => {
   try {
-    await protect.new(ctx)
+    const template = new Template(ctx)
+    await template.protect.new(template.ctx)
 
-    let text = "currency_select_scene_message"
-    let currency = await status.currency()
+    template.text = "currency_select_scene_message"
+    let currency = await template.status.currency()
 
-    let keyboard = []
+    template.keyboard = []
     let row = 3
     let length = Math.ceil(currency.length / row)
     for (let i = 0; i < length; i++) {
       const c = currency.slice(i * row, i * row + row)
-      keyboard.push(
+      template.keyboard.push(
         c.map(name =>
           Markup.button.callback(
             name,
-            "currency_" + name + "_" + ctx.session.callback_query
+            "currency_" + name + "_" + template.ctx.session.callback_query
           )
         )
       )
     }
 
-    keyboard = Markup.inlineKeyboard(keyboard)
+    template.keyboard = Markup.inlineKeyboard(template.keyboard)
 
-    await ctx.editMessageText(ctx.i18n.t(text), {
-      parse_mode: "HTML",
-      reply_markup: keyboard.reply_markup,
-    })
+    await template.editMessageText()
 
-    return ctx.wizard.next()
+    return template.ctx.wizard.next()
   } catch (e) {
     console.error(e)
   }
@@ -47,37 +39,27 @@ firstStep.on("callback_query", async ctx => {
 const secondStep = new Composer()
 secondStep.action(/currency_(.+)/, async ctx => {
   try {
-    if (typeof (await protect.callback(ctx)) != "object") return
-    let callback = await protect.callback(ctx)
+    const template = new Template(ctx)
+    if (typeof (await template.protect.callback(ctx)) != "object") return
+    let callback = await template.protect.callback(ctx)
 
-    let text = "currency_scene_success_checks"
+    template.text = "currency_scene_success_checks"
 
-    let query_user = await ctx.db.User.findOne({
-      _id: ctx.session.user._id,
+    template.query.user = await template.ctx.db.User.findOne({
+      _id: template.ctx.session.user._id,
     })
 
-    query_user.currency = callback.update[1]
-    await query_user.save()
+    template.query.currency = callback.update[1]
+    await template.query.user.save()
 
-    await ctx.editMessageText(ctx.i18n.t(text), {
-      parse_mode: "HTML",
-    })
+    await template.editMessageText()
 
-    return ctx.scene.leave()
+    return template.ctx.scene.leave()
   } catch (e) {
     console.error(e)
   }
 })
 
 const scene = new Scenes.WizardScene("currency", firstStep, secondStep)
-
-scene.command(["/cancel"], async ctx => {
-  try {
-    // await ctx.helpers.template.start(ctx)
-    return ctx.scene.leave()
-  } catch (e) {
-    console.error(e)
-  }
-})
 
 module.exports = scene

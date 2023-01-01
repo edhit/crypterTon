@@ -7,9 +7,10 @@ const schema = new Schema(
     uuid: String,
     amount: Number,
     price: Number,
+    fee: Number,
     status: Number,
     payment_status: Number,
-    toncoin: Object,
+    wallet: { type: Schema.Types.ObjectId, ref: "Address" },
   },
   {
     timestamps: true,

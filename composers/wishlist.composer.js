@@ -1,18 +1,9 @@
 const { Composer, Markup } = require("telegraf")
 const composer = new Composer()
 
-const Protect = require("./../helpers/protect")
+const Controller = require("./../controllers/wishlist.controller")
+const controller = new Controller()
 
-const protect = new Protect()
-
-composer.action(/wishlist_(.+)/, async ctx => {
-  try {
-    if (typeof (await protect.callback(ctx)) != "object") return
-
-    await ctx.scene.enter("wishlist")
-  } catch (e) {
-    console.error(e)
-  }
-})
+composer.action(/wishlist_(.+)/, async ctx => await controller.wishlist(ctx))
 
 module.exports = composer

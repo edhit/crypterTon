@@ -15,13 +15,19 @@ const i18n = new TelegrafI18n({
 })
 const stage = new Scenes.Stage([
   // require("./scenes/calc.scene"),
+  require("./scenes/settings.scene"), // deleteMessage
+  require("./scenes/orders.scene"), // deleteMessage
+  require("./scenes/start.scene"), // deleteMessage
+  require("./scenes/help.scene"),
   require("./scenes/wallet.scene"),
   require("./scenes/language.scene"),
   require("./scenes/currency.scene"),
-  require("./scenes/addproduct.scene"),
-  require("./scenes/search.scene"), // same
-  require("./scenes/wishlist.scene"), // same
-  require("./scenes/myproducts.scene"), // same
+  require("./scenes/addproduct.scene"), // deleteMessage
+  require("./scenes/search.scene"), // same | // deleteMessage
+  require("./scenes/wishlist.scene"), // same | // deleteMessage
+  require("./scenes/myproducts.scene"), // same | // deleteMessage
+  require("./scenes/purchases.scene"), // same
+  require("./scenes/sales.scene"), // same
 ])
 
 bot.context.db = db
@@ -36,6 +42,7 @@ bot.use(require("./composers/settings.composer"))
 bot.use(require("./composers/product.composer"))
 bot.use(require("./composers/search.composer"))
 bot.use(require("./composers/wishlist.composer"))
+bot.use(require("./composers/orders.composer"))
 bot.use(Composer.acl(admin, require("./composers/admin.composer")))
 
 bot.launch()

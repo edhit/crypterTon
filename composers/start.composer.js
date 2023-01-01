@@ -1,26 +1,21 @@
 const { Composer, Markup } = require("telegraf")
 const composer = new Composer()
 
-const Template = require("./../helpers/template")
-const Status = require("./../helpers/status")
+const Controller = require("./../controllers/start.controller")
+const controller = new Controller()
 
-const template = new Template()
-const status = new Status()
+composer.command("start", async ctx => await controller.start(ctx))
 
-composer.command("start", async ctx => {
-  try {
-    await template.start(ctx)
-  } catch (e) {
-    console.log(e)
-  }
-})
+composer.command("help", async ctx => await controller.help(ctx))
 
-composer.command("help", async ctx => {
-  try {
-    await template.help(ctx)
-  } catch (e) {
-    console.error(e)
-  }
+composer.command("fakes", async ctx => {
+  const randomstring = require("randomstring")
+  const res = await ctx.db.Product.updateMany({
+    delivery: randomstring.generate({
+      length: 2,
+      charset: "numeric",
+    }),
+  })
 })
 
 composer.command("fake", async ctx => {
@@ -41,6 +36,10 @@ composer.command("fake", async ctx => {
         length: 2,
         charset: "numeric",
       })
+      product.delivery = randomstring.generate({
+        length: 2,
+        charset: "numeric",
+      })
       product.count = randomstring.generate({
         length: 2,
         charset: "numeric",
@@ -50,23 +49,23 @@ composer.command("fake", async ctx => {
       product.media = [
         {
           fileId:
-            "AgACAgIAAxkBAAIZvGN7S7mhZ7_Fo4pAqw8cDkzkoGgwAAIzwTEbGNrZSzgvDZ5pXwPqAQADAgADeAADKwQ",
+            "AgACAgIAAxkBAAMiY5-Dw8rnrOcafF-dbyQaOke3paoAAifNMRtoY_lIARwhOXrHreEBAAMCAAN5AAMsBA",
           type: "photo",
         },
         {
           fileId:
-            "AgACAgIAAxkBAAIZvWN7S7nxs_Y3EoE8NrvFefolq-b6AAI0wTEbGNrZS6Osiq_X_NUwAQADAgADeAADKwQ",
+            "AgACAgIAAxkBAAMjY5-Dw3QWLmrRPPDBlUmMFQ1WuscAAifNMRtoY_lIARwhOXrHreEBAAMCAAN5AAMsBA",
           type: "photo",
         },
         {
           fileId:
-            "AgACAgIAAxkBAAIZvmN7S7nNunniTaZbUHMlX4Y1jyYeAAI1wTEbGNrZSyRB8vQDPgyNAQADAgADeAADKwQ",
+            "AgACAgIAAxkBAAMkY5-Dw3vVSngPtSAjO7grVsK6TWoAAifNMRtoY_lIARwhOXrHreEBAAMCAAN5AAMsBA",
           type: "photo",
         },
         {
           fileId:
-            "BAACAgIAAxkBAAIgB2N-tdCLU7LAgfs5oVObmQZyEmWSAAKyHwACv0f5S3sDzqXNGov3KwQ",
-          type: "video",
+            "AgACAgIAAxkBAAMlY5-DwxIDUoZisE-DbgnBVgjOaLIAAijNMRtoY_lITNgwaQlzm5gBAAMCAAN5AAMsBA",
+          type: "photo",
         },
       ]
       product.checks = "0"

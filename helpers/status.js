@@ -5,6 +5,8 @@ class Status {
 
   async order(statusOrder = false) {
     return [
+      "onpaid",
+      "paid",
       "new",
       "onagree",
       "onprepare",

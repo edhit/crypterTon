@@ -5,8 +5,6 @@ class Protect {
     try {
       let update = ctx.update.callback_query.data.split("_")
       let callback = update.pop()
-      console.log(update)
-      console.log(callback)
 
       if (callback != ctx.session.callback_query) throw "callback_query is old"
       await ctx.answerCbQuery(ctx.i18n.t("wait"), false)
@@ -25,6 +23,16 @@ class Protect {
       ctx.session.callback_query = randomstring.generate({
         length: 12,
         charset: "alphabetic",
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  async reset(ctx) {
+    try {
+      Object.keys(ctx.session).forEach(function (prop) {
+        if (prop != "user") delete ctx.session[prop]
       })
     } catch (e) {
       console.log(e)

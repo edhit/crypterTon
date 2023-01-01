@@ -1,25 +1,18 @@
 const { Composer, Scenes, Markup } = require("telegraf")
 
-const Template = require("./../helpers/template")
-const Payments = require("./../helpers/payments")
-const Protect = require("./../helpers/protect")
-
-const template = new Template()
-const payments = new Payments()
-const protect = new Protect()
+const Template = require("./../template/template")
 
 const firstStep = new Composer()
 firstStep.on("callback_query", async ctx => {
   try {
-    await protect.new(ctx)
+    const template = new Template(ctx)
+    await template.protect.new(template.ctx)
 
-    let text = "wallet_scene_message"
+    template.text = "wallet_scene_message"
 
-    await ctx.editMessageText(ctx.i18n.t(text), {
-      parse_mode: "HTML",
-    })
+    await template.editMessageText()
 
-    return ctx.wizard.next()
+    return template.ctx.wizard.next()
   } catch (e) {
     console.error(e)
   }
@@ -28,39 +21,32 @@ firstStep.on("callback_query", async ctx => {
 const secondStep = new Composer()
 secondStep.on("text", async ctx => {
   try {
-    let text = "wallet_scene_success_checks"
-    let input = ctx.message.text
+    const template = new Template(ctx)
+    template.text = "wallet_scene_success_checks"
 
-    let query_user = await ctx.db.User.findOne({
-      _id: ctx.session.user._id,
+    let input = template.ctx.message.text
+
+    template.query.user = await template.ctx.db.User.findOne({
+      _id: template.ctx.session.user._id,
     })
 
-    if ((await payments.getBalance(input)) == undefined) {
-      text = "wallet_scene_incorrect_error_checks"
-      await ctx.replyWithHTML(ctx.i18n.t(text))
+    if ((await template.payments.getBalance(input)) == undefined) {
+      template.text = "wallet_scene_incorrect_error_checks"
+      await template.replyWithHTML()
       return
     }
 
-    query_user.wallet = input
-    await query_user.save()
+    template.query.user = input
+    await template.query.user.save()
 
-    await ctx.replyWithHTML(ctx.i18n.t(text))
+    await template.replyWithHTML()
 
-    return ctx.scene.leave()
+    return template.ctx.scene.leave()
   } catch (e) {
     console.error(e)
   }
 })
 
 const scene = new Scenes.WizardScene("wallet", firstStep, secondStep)
-
-scene.command(["/cancel"], async ctx => {
-  try {
-    await template.start(ctx)
-    return ctx.scene.leave()
-  } catch (e) {
-    console.error(e)
-  }
-})
 
 module.exports = scene
