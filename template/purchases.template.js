@@ -31,17 +31,7 @@ class Purchases extends Template {
     try {
       if (this.obj == undefined) return
 
-      this.keyboard = Markup.inlineKeyboard([
-        [],
-        [],
-        [],
-        [
-          Markup.button.callback(
-            this.ctx.i18n.t("back"),
-            "orders_" + this.ctx.session.callback_query
-          ),
-        ],
-      ])
+      this.keyboard = Markup.inlineKeyboard([[], [], []])
 
       this.query.order = await this.ctx.db.Order.findOne({
         product: this.ctx.session.ids[this.obj.id]._id,
@@ -58,28 +48,35 @@ class Purchases extends Template {
 
       switch (this.query.order.payment_status) {
         case 1:
-          this.keyboard.reply_markup.inline_keyboard[1].push(
-            Markup.button.callback(
-              this.ctx.i18n.t("cancel_order"),
-              "product_" +
-                this.obj.id +
-                "_media_" +
-                this.obj.media +
-                "_action_cancelorder_" +
-                this.ctx.session.callback_query
-            )
+          await this.createButton(
+            1,
+            "callback",
+            "cancel_order", //
+            "product_" +
+              this.obj.id +
+              "_media_" +
+              this.obj.media +
+              "_action_cancelorder_" +
+              this.ctx.session.callback_query
           )
           break
       }
 
-      this.keyboard.reply_markup.inline_keyboard[1].push(
-        Markup.button.url(
-          this.ctx.i18n.t("sendMessage"),
-          "https://t.me/" + this.query.order.user.username
-        )
+      await this.createButton(
+        1,
+        "url",
+        "sendMessage", //✉️
+        "https://t.me/" + this.query.order.user.username
       )
 
-      await this.prevAndnext_btn("change-purchase")
+      await this.createButton(
+        1,
+        "callback",
+        "sort",
+        "sort_" + this.ctx.session.callback_query
+      )
+
+      await this.prevAndnextButton("change-purchase")
 
       await this.textTemplate()
 

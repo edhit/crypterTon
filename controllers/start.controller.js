@@ -3,7 +3,7 @@ const Controller = require("./controller")
 // const Start = require("./../template/start.template")
 // const Help = require("./../template/help.template")
 
-class Default extends Controller {
+class Start extends Controller {
   constructor() {
     super()
   }
@@ -28,4 +28,4 @@ class Default extends Controller {
   }
 }
 
-module.exports = Default
+module.exports = Start

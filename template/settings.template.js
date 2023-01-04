@@ -13,22 +13,26 @@ class Settings extends Template {
   async view() {
     try {
       this.text = "settings__message"
-      this.keyboard = Markup.inlineKeyboard([
-        [
-          Markup.button.callback(
-            this.ctx.i18n.t("wallet"),
-            "wallet_" + this.ctx.session.callback_query
-          ),
-          Markup.button.callback(
-            this.ctx.i18n.t("language"),
-            "language_" + this.ctx.session.callback_query
-          ),
-          Markup.button.callback(
-            this.ctx.i18n.t("currency"),
-            "currency_" + this.ctx.session.callback_query
-          ),
-        ],
-      ])
+      this.keyboard = Markup.inlineKeyboard([[], [], []])
+
+      await this.createButton(
+        0,
+        "callback",
+        "wallet",
+        "wallet_" + this.ctx.session.callback_query
+      )
+      await this.createButton(
+        0,
+        "callback",
+        "language",
+        "language_" + this.ctx.session.callback_query
+      )
+      await this.createButton(
+        0,
+        "callback",
+        "currency",
+        "currency_" + this.ctx.session.callback_query
+      )
 
       await this.replyWithHTML()
     } catch (e) {

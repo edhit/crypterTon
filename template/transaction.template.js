@@ -14,39 +14,91 @@ class Transaction extends Template {
   }
 
   async textTemplate() {
-    if (this.query.order.payment_status == 0) {
-      this.text =
-        "<b>🔥️ " +
-        this.query.product.name +
-        "</b>\n\n" +
-        "<pre>💎 " +
-        this.query.order.wallet.wallet.wallet +
-        "\n🏷️ " +
-        this.query.order.amount +
-        " TON (+" +
-        this.query.order.fee.toFixed(this.rounding) +
-        " TON)\n✉️ " +
-        this.query.order.uuid +
-        "</pre>\n\n " +
-        this.ctx.i18n.t("instruction_pay") +
-        "\n\n<b>🕒 " +
-        this.ctx.i18n.t("left") +
-        "</b> " +
-        moment(
-          moment(this.query.order.createdAt).add("15", "m").valueOf() -
-            moment().valueOf()
-        ).format("mm:ss")
+    switch (this.query.order.payment_status) {
+      case 0:
+        // (pos, type, name, callback)
+        await this.createButton(
+          0,
+          "callback",
+          "confirm",
+          "product_" +
+            this.obj.id +
+            "_media_0_action_transaction_" +
+            this.ctx.session.callback_query
+        )
+        await this.createButton(
+          0,
+          "url",
+          "pay",
+          "ton://transfer/" +
+            this.query.order.wallet.wallet.wallet +
+            "?amount=" +
+            (await this.payments.toNano(this.query.amount.toString())) +
+            "&text=" +
+            this.query.order.uuid
+        )
 
-      // "Способы оплаты \n \
-      // 1. Отсканируйте код через приложение (Tonkeeper, Tonhub) \n\n\
-      // 2. Отправьте точную сумму на кошелек TON с указанием комментария"
-    } else {
-      let payment = await this.status.payment()
-      this.text =
-        "<b>🔥️ " +
-        this.query.product.name +
-        "</b>\n\n ⚡️ " +
-        this.ctx.i18n.t(payment[this.query.order.payment_status])
+        await this.createButton(
+          1,
+          "callback",
+          "cancel",
+          "product_" +
+            this.obj.id +
+            "_media_0_action_canceltransation_" +
+            this.ctx.session.callback_query
+        )
+
+        this.text =
+          "<b>🔥️ " +
+          this.query.product.name +
+          "</b>\n\n" +
+          "<pre>💎 " +
+          this.query.order.wallet.wallet.wallet +
+          "\n🏷️ " +
+          this.query.amount +
+          " TON (+" +
+          this.query.order.fee.toFixed(this.rounding) +
+          " TON)\n✉️ " +
+          this.query.order.uuid +
+          "</pre>\n\n " +
+          this.ctx.i18n.t("instruction_pay") +
+          "\n\n<b>🕒 " +
+          this.ctx.i18n.t("left") +
+          "</b> " +
+          moment(
+            moment(this.query.order.createdAt).add("15", "m").valueOf() -
+              moment().valueOf()
+          ).format("mm:ss")
+
+        // "Способы оплаты \n \
+        // 1. Отсканируйте код через приложение (Tonkeeper, Tonhub) \n\n\
+        // 2. Отправьте точную сумму на кошелек TON с указанием комментария"
+        // 3. Без uuid мы не сможем вернуть средства
+        break
+      case 1:
+        let payment = await this.status.payment()
+        await this.createButton(
+          0,
+          "url",
+          "transaction",
+          process.env.TONAPI + this.query.order.wallet.wallet.wallet
+        )
+        await this.createButton(
+          1,
+          "callback",
+          "back",
+          "product_" +
+            this.obj.id +
+            "_media_0_action_canceltransation_" +
+            this.ctx.session.callback_query
+        )
+
+        this.text =
+          "<b>🔥️ " +
+          this.query.product.name +
+          "</b>\n\n ⚡️ " +
+          this.ctx.i18n.t(payment[this.query.order.payment_status])
+        break
     }
   }
 
@@ -65,18 +117,8 @@ class Transaction extends Template {
       this.query.order = await this.ctx.db.Order.findOne({
         product: this.ctx.session.ids[this.obj.id]._id,
         user: this.ctx.session.user._id,
-        $or: [{ payments_status: 0 }, { payments_status: 1 }],
+        $or: [{ payment_status: 0 }, { payment_status: 1 }],
       }).populate("wallet")
-
-      this.keyboard.reply_markup.inline_keyboard[1].push(
-        Markup.button.callback(
-          this.ctx.i18n.t("back"),
-          "product_" +
-            this.obj.id +
-            "_media_0_action_canceltransation_" +
-            this.ctx.session.callback_query
-        )
-      )
 
       if (this.query.order == null) {
         let fee =
@@ -123,83 +165,46 @@ class Transaction extends Template {
           moment(this.query.order.createdAt).add("15", "m").valueOf() <
           moment().valueOf()
         ) {
-          console.log("15m")
+          // console.log("15m")
           this.query.order.delete()
           return await this.view()
         } else {
-          let transactions = await this.payments.getTransactions(
+          let balance = await this.payments.getBalance(
             this.query.order.wallet.wallet.wallet
           )
-          if (typeof transactions == "object") {
-            console.log(transactions)
-            for (let tx of transactions) {
-              if (
-                Number(await this.payments.fromNano(tx.in_msg.value)) >=
-                  Number(this.query.order.amount) &&
-                tx.in_msg.message == this.query.order.uuid
-              ) {
-                console.log(await this.payments.fromNano(tx.in_msg.value))
-                this.query.order.status = 1
-                this.query.order.payment_status = 1
-                this.query.order.save()
-                await this.ctx.telegram.sendMessage(
-                  this.query.product.user.user.toString(),
-                  this.ctx.i18n.t("new_order")
-                )
-              } else {
-                await this.ctx.answerCbQuery(
-                  this.ctx.i18n.t("an_incomplete_amount_was_sent"),
-                  false
-                )
-              }
-            }
-          } else {
-            await this.ctx.answerCbQuery(
-              this.ctx.i18n.t("error_with_check_transaction"),
-              false
+          if (
+            Number(await this.payments.fromNano(balance)).toFixed(
+              this.rounding
+            ) >= Number(this.query.order.amount).toFixed(this.rounding)
+          ) {
+            this.query.order.status = 1
+            this.query.order.payment_status = 1
+            this.query.order.save()
+            await this.ctx.telegram.sendMessage(
+              this.query.product.user.user.toString(),
+              this.ctx.i18n.t("new_order")
             )
+          } else {
+            balance = await this.payments.fromNano(balance)
+            this.query.amount = (
+              Number(this.query.order.amount) - Number(balance)
+            ).toFixed(this.rounding)
           }
         }
       }
 
       let media
       if (this.query.order.payment_status == 0) {
-        this.keyboard.reply_markup.inline_keyboard[0].push(
-          Markup.button.callback(
-            this.ctx.i18n.t("confirm"),
-            "product_" +
-              this.obj.id +
-              "_media_0_action_transaction_" +
-              this.ctx.session.callback_query
-          )
-        )
-        this.keyboard.reply_markup.inline_keyboard[0].push(
-          Markup.button.url(
-            this.ctx.i18n.t("pay"),
-            "ton://transfer/" +
-              this.query.order.wallet.wallet.wallet +
-              "?amount=" +
-              (await this.payments.toNano(this.query.order.amount.toString())) +
-              "&text=" +
-              this.query.order.uuid
-          )
-        )
         media = await this.qrcode.create(
           "ton://transfer/" +
             this.query.order.wallet.wallet.wallet +
             "?amount=" +
-            (await this.payments.toNano(this.query.order.amount.toString())) +
+            (await this.payments.toNano(this.query.amount.toString())) +
             "&text=" +
             this.query.order.uuid
         )
         await this.textTemplate()
       } else {
-        this.keyboard.reply_markup.inline_keyboard[0].push(
-          Markup.button.url(
-            this.ctx.i18n.t("transaction"),
-            process.env.TONAPI + this.query.order.wallet.wallet.wallet
-          )
-        )
         media = await this.qrcode.create(
           process.env.TONAPI + this.query.order.wallet.wallet.wallet
         )

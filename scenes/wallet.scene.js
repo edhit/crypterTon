@@ -6,15 +6,18 @@ const firstStep = new Composer()
 firstStep.on("callback_query", async ctx => {
   try {
     const template = new Template(ctx)
-    await template.protect.new(template.ctx)
 
     template.text = "wallet_scene_message"
 
     await template.editMessageText()
 
-    return template.ctx.wizard.next()
+    await template.ctx.wizard.next()
   } catch (e) {
     console.error(e)
+    const template = new Template(ctx)
+
+    await template.canceled()
+    await template.ctx.scene.leave()
   }
 })
 
@@ -32,8 +35,8 @@ secondStep.on("text", async ctx => {
 
     if ((await template.payments.getBalance(input)) == undefined) {
       template.text = "wallet_scene_incorrect_error_checks"
-      await template.replyWithHTML()
-      return
+
+      return await template.replyWithHTML()
     }
 
     template.query.user = input
@@ -41,9 +44,13 @@ secondStep.on("text", async ctx => {
 
     await template.replyWithHTML()
 
-    return template.ctx.scene.leave()
+    await template.ctx.scene.leave()
   } catch (e) {
     console.error(e)
+    const template = new Template(ctx)
+
+    await template.canceled()
+    await template.ctx.scene.leave()
   }
 })
 

@@ -17,18 +17,20 @@ class Order extends Template {
       // }).select("_id")
 
       this.text = "orders__message"
-      this.keyboard = Markup.inlineKeyboard([
-        [
-          Markup.button.callback(
-            this.ctx.i18n.t("purchases"),
-            "purchases_" + this.ctx.session.callback_query
-          ),
-          Markup.button.callback(
-            this.ctx.i18n.t("sales"),
-            "sales_" + this.ctx.session.callback_query
-          ),
-        ],
-      ])
+      this.keyboard = Markup.inlineKeyboard([[], [], []])
+
+      await this.createButton(
+        0,
+        "callback",
+        "purchases",
+        "purchases_" + this.ctx.session.callback_query
+      )
+      await this.createButton(
+        0,
+        "callback",
+        "sales",
+        "sales_" + this.ctx.session.callback_query
+      )
 
       await this.replyWithHTML()
     } catch (e) {

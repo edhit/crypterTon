@@ -21,11 +21,7 @@ class Product extends Template {
       "\n<pre>🏷️ " +
       price +
       "</pre>" +
-      "\n<pre>📦 " +
-      this.query.product.delivery.toFixed(this.rounding) +
-      " " +
-      this.query.product.currency.toUpperCase() +
-      "</pre>\n#️⃣ " +
+      "\n#️⃣ " +
       tags.join(" ") +
       "\n🌌 " +
       this.query.product.media.length +
@@ -64,7 +60,7 @@ class Product extends Template {
         id: process.env.GENERAL_ID,
       })
 
-      await this.prevAndnext_btn("change-product")
+      await this.prevAndnextButton("change-product")
       // console.log(this.query.product._id.toString())
       // console.log(this.query.product.user._id.toString())
       // console.log(this.ctx.session.user._id.toString())
@@ -75,16 +71,16 @@ class Product extends Template {
           this.ctx.session.user._id.toString() &&
         this.query.product.count - this.query.order.length > 0
       ) {
-        this.keyboard.reply_markup.inline_keyboard[1].push(
-          Markup.button.callback(
-            "💰 " + this.ctx.i18n.t("reserve"),
-            "product_" +
-              this.obj.id +
-              "_media_" +
-              this.obj.media +
-              "_action_transaction_" +
-              this.ctx.session.callback_query
-          )
+        await this.createButton(
+          1,
+          "callback",
+          "reserve", //💰
+          "product_" +
+            this.obj.id +
+            "_media_" +
+            this.obj.media +
+            "_action_transaction_" +
+            this.ctx.session.callback_query
         )
       }
 
@@ -93,28 +89,28 @@ class Product extends Template {
         this.ctx.session.user._id.toString()
       ) {
         if (this.query.wishlist == null) {
-          this.keyboard.reply_markup.inline_keyboard[1].push(
-            Markup.button.callback(
-              "❤️ " + this.ctx.i18n.t("addtowishlist"),
-              "product_" +
-                this.obj.id +
-                "_media_" +
-                this.obj.media +
-                "_action_wishlist_" +
-                this.ctx.session.callback_query
-            )
+          await this.createButton(
+            1,
+            "callback",
+            "addtowishlist", //❤️
+            "product_" +
+              this.obj.id +
+              "_media_" +
+              this.obj.media +
+              "_action_wishlist_" +
+              this.ctx.session.callback_query
           )
         } else {
-          this.keyboard.reply_markup.inline_keyboard[1].push(
-            Markup.button.callback(
-              "💔 " + this.ctx.i18n.t("deletefromwishlist"),
-              "product_" +
-                this.obj.id +
-                "_media_" +
-                this.obj.media +
-                "_action_wishlist_" +
-                this.ctx.session.callback_query
-            )
+          await this.createButton(
+            1,
+            "callback",
+            "deletefromwishlist", //💔
+            "product_" +
+              this.obj.id +
+              "_media_" +
+              this.obj.media +
+              "_action_wishlist_" +
+              this.ctx.session.callback_query
           )
         }
       }
@@ -124,11 +120,11 @@ class Product extends Template {
         this.query.product.user._id.toString() !=
           this.ctx.session.user._id.toString()
       ) {
-        this.keyboard.reply_markup.inline_keyboard[1].push(
-          Markup.button.url(
-            this.ctx.i18n.t("sendMessage"),
-            "https://t.me/" + this.query.product.user.username
-          )
+        await this.createButton(
+          1,
+          "url",
+          "sendMessage", //✉️
+          "https://t.me/" + this.query.product.user.username
         )
       }
 
@@ -137,16 +133,25 @@ class Product extends Template {
         this.query.product.user._id.toString() ==
           this.ctx.session.user._id.toString()
       ) {
-        this.keyboard.reply_markup.inline_keyboard[1].push(
-          Markup.button.callback(
-            this.ctx.i18n.t("edit"),
-            "product_" +
-              this.obj.id +
-              "_media_" +
-              this.obj.media +
-              "_action_edit_" +
-              this.ctx.session.callback_query
-          )
+        await this.createButton(
+          1,
+          "callback",
+          "edit", //📝
+          "product_" +
+            this.obj.id +
+            "_media_" +
+            this.obj.media +
+            "_action_edit_" +
+            this.ctx.session.callback_query
+        )
+      }
+
+      if (this.ctx.session.__scenes.current == "search") {
+        await this.createButton(
+          1,
+          "callback",
+          "sort",
+          "sort_" + this.ctx.session.callback_query
         )
       }
 
@@ -158,32 +163,36 @@ class Product extends Template {
         )
 
       if (this.query.product.media.length > 1) {
-        let icon
+        let name
         let callback
         for (let i = 0; i < this.query.product.media.length; i++) {
           if (i == this.obj.media) {
-            icon = "🟢"
+            name = "same_picture" //🟢
             callback = "same"
           } else {
-            icon = "🌌"
+            name = "picture" //🌌
             callback = this.ctx.session.callback_query
           }
-          this.keyboard.reply_markup.inline_keyboard[0].push(
-            Markup.button.callback(
-              icon,
-              "product_" +
-                this.obj.id +
-                "_media_" +
-                i +
-                "_action_media_" +
-                callback
-            )
+          await this.createButton(
+            0,
+            "callback",
+            name,
+            "product_" +
+              this.obj.id +
+              "_media_" +
+              i +
+              "_action_media_" +
+              callback
           )
         }
       }
-
+      // console.log(this.query.product.price)
+      // console.log(this.query.product.delivery)
+      // console.log(this.query.product.currency.toUpperCase())
+      // console.log(this.ctx.session.user.currency.toUpperCase())
       let convert = {
         price: this.query.product.price,
+        delivery: this.query.product.delivery,
         currency: this.query.product.currency.toUpperCase(),
         btc: (
           this.query.product.price /
@@ -198,21 +207,29 @@ class Product extends Template {
       }
       if (this.query.product.currency == this.ctx.session.user.currency) {
         convert.price =
-          this.query.product.price.toFixed(this.rounding) +
+          convert.price.toFixed(this.rounding) +
           " " +
           convert.currency +
           " \n   " +
           convert.btc +
           " BTC \n   " +
           convert.ton +
-          " TON"
+          " TON \n" +
+          "📦 " +
+          this.query.product.delivery.toFixed(this.rounding) +
+          " " +
+          convert.currency
       } else {
         if (this.query.product.currency != "usd") {
-          convert.price =
-            this.query.product.price *
-            this.query.general.coins.usd[this.ctx.session.user.currency]
           convert.price = (
-            convert.price /
+            (this.query.product.price *
+              this.query.general.coins.usd[this.ctx.session.user.currency]) /
+            this.query.general.coins.usd[this.query.product.currency]
+          ).toFixed(this.rounding)
+
+          convert.delivery = (
+            (this.query.product.delivery *
+              this.query.general.coins.usd[this.ctx.session.user.currency]) /
             this.query.general.coins.usd[this.query.product.currency]
           ).toFixed(this.rounding)
         } else {
@@ -220,7 +237,12 @@ class Product extends Template {
             this.query.product.price *
             this.query.general.coins.usd[this.ctx.session.user.currency]
           ).toFixed(this.rounding)
+          convert.delivery = (
+            this.query.product.delivery *
+            this.query.general.coins.usd[this.ctx.session.user.currency]
+          ).toFixed(this.rounding)
         }
+
         convert.currency = this.ctx.session.user.currency.toUpperCase()
         convert.price =
           convert.price +
@@ -230,7 +252,11 @@ class Product extends Template {
           convert.btc +
           " BTC \n   " +
           convert.ton +
-          " TON"
+          " TON \n" +
+          "📦 " +
+          convert.delivery +
+          " " +
+          convert.currency
       }
       // console.log(this.query.product.price + " " + this.query.product.currency)
       await this.textTemplate(tags, convert.price)

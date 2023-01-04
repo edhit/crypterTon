@@ -1,4 +1,27 @@
 class Status {
+  async sort(type) {
+    let arr
+    switch (type) {
+      case "product":
+        arr = ["createdAtDesc", "createdAtAsc"]
+        break
+      case "orders":
+        arr = [
+          "all",
+          "paid",
+          "new",
+          "onagree",
+          "onprepare",
+          "ondelivery",
+          "success",
+          "canceled",
+          "returned",
+        ]
+        break
+    }
+    return arr
+  }
+
   async product(status = false) {
     return ["published", "oncheck", "deleted"]
   }
@@ -9,7 +32,6 @@ class Status {
       "paid",
       "new",
       "onagree",
-      "onprepare",
       "onprepare",
       "ondelivery",
       "success",

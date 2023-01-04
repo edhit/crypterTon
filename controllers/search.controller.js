@@ -1,6 +1,6 @@
 const Controller = require("./controller")
 
-class Default extends Controller {
+class Search extends Controller {
   constructor() {
     super()
   }
@@ -8,7 +8,8 @@ class Default extends Controller {
   async search(ctx) {
     try {
       if (typeof (await this.protect.callback(ctx)) != "object") return
-      await ctx.deleteMessage()
+      await this.protect.reset(ctx)
+      await this.protect.new(ctx)
 
       await ctx.scene.enter("search")
     } catch (e) {
@@ -17,4 +18,4 @@ class Default extends Controller {
   }
 }
 
-module.exports = Default
+module.exports = Search

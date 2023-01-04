@@ -1,18 +1,22 @@
 const { Composer, Scenes, Markup } = require("telegraf")
 
 const Template = require("./../template/product.template")
+const Scene = require("./scene")
 
 const firstStep = new Composer()
 firstStep.on("callback_query", async ctx => {
   try {
     const template = new Template(ctx)
-    await template.protect.new(template.ctx)
+    await template.protect.new(ctx)
+    await ctx.deleteMessage()
+
+    let sorting = await template.sort.product()
 
     template.query.product = await template.ctx.db.Product.find({
       user: template.ctx.session.user._id,
     })
       .select("_id")
-      .sort({ updatedAt: "desc" })
+      .sort(sorting)
 
     template.ctx.session.ids = template.query.product
 
@@ -23,7 +27,7 @@ firstStep.on("callback_query", async ctx => {
         first: true,
       }
       await template.view()
-      return template.ctx.wizard.next()
+      return await template.ctx.wizard.next()
     }
     template.text = "search_scene_nothingfound_error_checks"
 
@@ -33,19 +37,21 @@ firstStep.on("callback_query", async ctx => {
     const template = new Template(ctx)
 
     await template.canceled()
-    return template.ctx.scene.leave()
+    await template.ctx.scene.leave()
   }
 })
 
 const secondStep = new Composer()
-secondStep.on("callback_query", async ctx => {
+secondStep.action(/product_(.+)/, async ctx => {
   try {
-    const template = new Template(ctx)
-
-    await template.buttons()
-    await template.view()
+    const scene = new Scene()
+    await scene.buttons(ctx)
   } catch (e) {
     console.log(e)
+    const template = new Template(ctx)
+
+    await template.canceled()
+    await template.ctx.scene.leave()
   }
 })
 

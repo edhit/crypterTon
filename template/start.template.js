@@ -17,40 +17,44 @@ class Start extends Template {
       // await this.protect.new(this.ctx)
 
       this.text = "start__message"
-      this.keyboard = Markup.inlineKeyboard([
-        [
-          Markup.button.callback(
-            this.ctx.i18n.t("addproduct"),
-            "addproduct_" + this.ctx.session.callback_query
-          ),
-          Markup.button.callback(
-            this.ctx.i18n.t("myproducts"),
-            "myproducts_" + this.ctx.session.callback_query
-          ),
-        ],
-        [
-          Markup.button.callback(
-            this.ctx.i18n.t("search"),
-            "search_" + this.ctx.session.callback_query
-          ),
-          Markup.button.callback(
-            this.ctx.i18n.t("wishlist"),
-            "wishlist_" + this.ctx.session.callback_query
-          ),
-        ],
-        [
-          Markup.button.callback(
-            this.ctx.i18n.t("orders"),
-            "orders_" + this.ctx.session.callback_query
-          ),
-        ],
-        [
-          Markup.button.callback(
-            this.ctx.i18n.t("settings"),
-            "settings_" + this.ctx.session.callback_query
-          ),
-        ],
-      ])
+      this.keyboard = Markup.inlineKeyboard([[], [], [], []])
+
+      await this.createButton(
+        0,
+        "callback",
+        "addproduct",
+        "addproduct_" + this.ctx.session.callback_query
+      )
+      await this.createButton(
+        0,
+        "callback",
+        "myproducts",
+        "myproducts_" + this.ctx.session.callback_query
+      )
+      await this.createButton(
+        1,
+        "callback",
+        "search",
+        "search_" + this.ctx.session.callback_query
+      )
+      await this.createButton(
+        1,
+        "callback",
+        "wishlist",
+        "wishlist_" + this.ctx.session.callback_query
+      )
+      await this.createButton(
+        2,
+        "callback",
+        "orders",
+        "orders_" + this.ctx.session.callback_query
+      )
+      await this.createButton(
+        3,
+        "callback",
+        "settings",
+        "settings_" + this.ctx.session.callback_query
+      )
 
       await this.replyWithHTML()
     } catch (e) {

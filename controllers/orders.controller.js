@@ -1,6 +1,6 @@
 const Controller = require("./controller")
 
-class Default extends Controller {
+class Orders extends Controller {
   constructor() {
     super()
   }
@@ -8,7 +8,8 @@ class Default extends Controller {
   async orders(ctx) {
     try {
       if (typeof (await this.protect.callback(ctx)) != "object") return
-      await ctx.deleteMessage()
+      await this.protect.reset(ctx)
+      await this.protect.new(ctx)
 
       await ctx.scene.enter("orders")
     } catch (e) {
@@ -19,6 +20,8 @@ class Default extends Controller {
   async purchases(ctx) {
     try {
       if (typeof (await this.protect.callback(ctx)) != "object") return
+      await this.protect.reset(ctx)
+      await this.protect.new(ctx)
       // let order = await status.order()
 
       // let keyboard = []
@@ -44,6 +47,8 @@ class Default extends Controller {
   async sales(ctx) {
     try {
       if (typeof (await this.protect.callback(ctx)) != "object") return
+      await this.protect.reset(ctx)
+      await this.protect.new(ctx)
 
       await ctx.scene.enter("sales")
     } catch (e) {
@@ -52,4 +57,4 @@ class Default extends Controller {
   }
 }
 
-module.exports = Default
+module.exports = Orders

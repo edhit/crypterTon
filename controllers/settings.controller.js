@@ -1,6 +1,6 @@
 const Controller = require("./controller")
 
-class Default extends Controller {
+class Settings extends Controller {
   constructor() {
     super()
   }
@@ -8,7 +8,8 @@ class Default extends Controller {
   async settings(ctx) {
     try {
       if (typeof (await this.protect.callback(ctx)) != "object") return
-      await ctx.deleteMessage()
+      await this.protect.reset(ctx)
+      await this.protect.new(ctx)
 
       await ctx.scene.enter("settings")
     } catch (e) {
@@ -19,6 +20,8 @@ class Default extends Controller {
   async wallet(ctx) {
     try {
       if (typeof (await this.protect.callback(ctx)) != "object") return
+      await this.protect.reset(ctx)
+      await this.protect.new(ctx)
 
       await ctx.scene.enter("wallet")
     } catch (e) {
@@ -29,6 +32,8 @@ class Default extends Controller {
   async language(ctx) {
     try {
       if (typeof (await this.protect.callback(ctx)) != "object") return
+      await this.protect.reset(ctx)
+      await this.protect.new(ctx)
 
       await ctx.scene.enter("language")
     } catch (e) {
@@ -47,4 +52,4 @@ class Default extends Controller {
   }
 }
 
-module.exports = Default
+module.exports = Settings
