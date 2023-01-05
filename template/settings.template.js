@@ -34,7 +34,7 @@ class Settings extends Template {
         "currency_" + this.ctx.session.callback_query
       )
 
-      await this.replyWithHTML()
+      await this.editMessageText()
     } catch (e) {
       console.log(e)
     }

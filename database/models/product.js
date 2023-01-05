@@ -11,7 +11,6 @@ const schema = new Schema(
     delivery: Number,
     count: Number,
     media: Array,
-    checks: { type: String, lowercase: true, trim: true },
     currency: { type: String, lowercase: true, trim: true },
     status: Number,
     rate: Number,

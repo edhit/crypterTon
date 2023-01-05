@@ -8,11 +8,10 @@ firstStep.on("callback_query", async ctx => {
   try {
     const template = new Template(ctx)
     await template.protect.new(ctx)
-    await ctx.deleteMessage()
 
     template.text = "search_scene_message"
 
-    await template.replyWithHTML()
+    await template.editMessageText()
 
     return template.ctx.wizard.next()
   } catch (e) {

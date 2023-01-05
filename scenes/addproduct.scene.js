@@ -9,7 +9,6 @@ const firstStep = new Composer()
 firstStep.on("callback_query", async ctx => {
   try {
     const template = new Template(ctx)
-    await ctx.deleteMessage()
 
     template.text = "addproduct_scene_photo_message"
 
@@ -20,7 +19,7 @@ firstStep.on("callback_query", async ctx => {
       template.ctx.wizard.state.data.media = []
     }
 
-    await template.replyWithHTML()
+    await template.editMessageText()
 
     await template.ctx.wizard.next()
   } catch (e) {
@@ -112,6 +111,19 @@ thirdStep.on("text", async ctx => {
 
       return await template.replyWithHTML()
     }
+
+    if ((await template.checker.phone(input)) != null) {
+      template.text = "addproduct_scene_name_checker_phone_error_checks"
+
+      return await template.replyWithHTML()
+    }
+
+    if ((await template.checker.url(input)) != null) {
+      template.text = "addproduct_scene_name_checker_url_error_checks"
+
+      return await template.replyWithHTML()
+    }
+
     template.ctx.wizard.state.data.name = input
 
     await template.replyWithHTML()
@@ -135,6 +147,19 @@ fourthStep.on("text", async ctx => {
 
       return await template.replyWithHTML()
     }
+
+    if ((await template.checker.phone(input)) != null) {
+      template.text = "addproduct_scene_description_checker_phone_error_checks"
+
+      return await template.replyWithHTML()
+    }
+
+    if ((await template.checker.url(input)) != null) {
+      template.text = "addproduct_scene_description_checker_url_error_checks"
+
+      return await template.replyWithHTML()
+    }
+
     template.ctx.wizard.state.data.description = input
 
     await template.replyWithHTML()
@@ -158,6 +183,19 @@ fifthStep.on("text", async ctx => {
 
       return await template.replyWithHTML()
     }
+
+    if ((await template.checker.phone(input)) != null) {
+      template.text = "addproduct_scene_tags_checker_phone_error_checks"
+
+      return await template.replyWithHTML()
+    }
+
+    if ((await template.checker.url(input)) != null) {
+      template.text = "addproduct_scene_tags_checker_url_error_checks"
+
+      return await template.replyWithHTML()
+    }
+
     template.ctx.wizard.state.data.tags = input
 
     await template.replyWithHTML()
@@ -273,42 +311,7 @@ ninthStep.action(/confirm_(yes|no)_(.+)/, async ctx => {
     if (typeof (await template.protect.callback(ctx)) != "object") return
     let callback = await template.protect.callback(ctx)
 
-    let checks = []
     if (callback.update[1] == "yes") {
-      if (
-        (await template.checker.phone(template.ctx.wizard.state.data.name)) !=
-        null
-      )
-        checks.push(1)
-      if (
-        (await template.checker.phone(
-          template.ctx.wizard.state.data.description
-        )) != null
-      )
-        checks.push(2)
-      if (
-        (await template.checker.phone(template.ctx.wizard.state.data.tags)) !=
-        null
-      )
-        checks.push(3)
-
-      if (
-        (await template.checker.url(template.ctx.wizard.state.data.name)) !=
-        null
-      )
-        checks.push(4)
-      if (
-        (await template.checker.url(
-          template.ctx.wizard.state.data.description
-        )) != null
-      )
-        checks.push(5)
-      if (
-        (await template.checker.url(template.ctx.wizard.state.data.tags)) !=
-        null
-      )
-        checks.push(6)
-
       if (
         template.ctx.session.startdate.add("20", "h").valueOf() >
         moment().valueOf()
@@ -332,7 +335,6 @@ ninthStep.action(/confirm_(yes|no)_(.+)/, async ctx => {
         product.count = template.ctx.wizard.state.data.count
         product.status = 0
         product.currency = template.ctx.wizard.state.data.currency
-        product.checks = checks.length > 0 ? checks.join(",") : "0"
         console.log(product)
         await product.save()
         template.text = "addproduct_scene_success_checks"

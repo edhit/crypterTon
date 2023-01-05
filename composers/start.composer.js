@@ -68,7 +68,6 @@ composer.command("fake", async ctx => {
           type: "photo",
         },
       ]
-      product.checks = "0"
       await product.save()
     }
   } catch (e) {

@@ -32,7 +32,7 @@ class Order extends Template {
         "sales_" + this.ctx.session.callback_query
       )
 
-      await this.replyWithHTML()
+      await this.editMessageText()
     } catch (e) {
       console.log(e)
     }

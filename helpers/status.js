@@ -6,17 +6,7 @@ class Status {
         arr = ["createdAtDesc", "createdAtAsc"]
         break
       case "orders":
-        arr = [
-          "all",
-          "paid",
-          "new",
-          "onagree",
-          "onprepare",
-          "ondelivery",
-          "success",
-          "canceled",
-          "returned",
-        ]
+        arr = ["all", "paid", "new", "sent", "success", "canceled"]
         break
     }
     return arr
@@ -27,17 +17,7 @@ class Status {
   }
 
   async order(statusOrder = false) {
-    return [
-      "onpaid",
-      "paid",
-      "new",
-      "onagree",
-      "onprepare",
-      "ondelivery",
-      "success",
-      "canceled",
-      "returned",
-    ]
+    return ["onpaid", "paid", "new", "sent", "success", "canceled"]
   }
 
   async payment(statusPayment = false) {

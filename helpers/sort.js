@@ -23,7 +23,7 @@ class Sort {
       let obj
       switch (string) {
         case "all":
-          obj = [1, 2, 3, 4, 5, 6, 7]
+          obj = [1, 2, 3, 4, 5]
           break
         case "paid":
           obj = 1
@@ -31,26 +31,17 @@ class Sort {
         case "new":
           obj = 2
           break
-        case "onagree":
+        case "sent":
           obj = 3
           break
-        case "onprepare":
+        case "success":
           obj = 4
           break
-        case "ondelivery":
+        case "canceled":
           obj = 5
           break
-        case "success":
-          obj = 6
-          break
-        case "canceled":
-          obj = 7
-          break
-        case "returned":
-          obj = 8
-          break
         default:
-          obj = [1, 2, 3, 4, 5, 6, 7]
+          obj = [1, 2, 3, 4, 5]
       }
       return obj
     } catch (e) {

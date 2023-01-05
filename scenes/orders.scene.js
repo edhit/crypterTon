@@ -6,7 +6,6 @@ const firstStep = new Composer()
 firstStep.on("callback_query", async ctx => {
   try {
     const template = new Template(ctx)
-    await ctx.deleteMessage()
 
     await template.view()
 

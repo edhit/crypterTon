@@ -26,7 +26,7 @@ class Start extends Template {
         "addproduct_" + this.ctx.session.callback_query
       )
       await this.createButton(
-        0,
+        1,
         "callback",
         "myproducts",
         "myproducts_" + this.ctx.session.callback_query
@@ -38,7 +38,7 @@ class Start extends Template {
         "search_" + this.ctx.session.callback_query
       )
       await this.createButton(
-        1,
+        2,
         "callback",
         "wishlist",
         "wishlist_" + this.ctx.session.callback_query
