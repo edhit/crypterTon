@@ -1,16 +1,16 @@
 const { Composer, Scenes, Markup } = require("telegraf")
 const validator = require("validator")
 const moment = require("moment")
-const { v4: uuidv4 } = require("uuid")
 
 const Template = require("./../template/template")
 
 const firstStep = new Composer()
-firstStep.on("callback_query", async ctx => {
+firstStep.action(/addproduct_(.+)/, async ctx => {
   try {
     const template = new Template(ctx)
+    await ctx.deleteMessage()
 
-    template.text = "addproduct_scene_photo_message"
+    template.text = "addproduct_scene_media_message"
 
     template.ctx.session.startdate = moment()
     template.ctx.wizard.state.data = {}
@@ -19,7 +19,32 @@ firstStep.on("callback_query", async ctx => {
       template.ctx.wizard.state.data.media = []
     }
 
-    await template.editMessageText()
+    await template.replyWithHTML()
+
+    await template.ctx.wizard.next()
+  } catch (e) {
+    console.log(e)
+    const template = new Template(ctx)
+
+    await template.canceled()
+    await template.ctx.scene.leave()
+  }
+})
+
+firstStep.command("addproduct", async ctx => {
+  try {
+    const template = new Template(ctx)
+
+    template.text = "addproduct_scene_media_message"
+
+    template.ctx.session.startdate = moment()
+    template.ctx.wizard.state.data = {}
+
+    if (template.ctx.wizard.state.data.media == undefined) {
+      template.ctx.wizard.state.data.media = []
+    }
+
+    await template.replyWithHTML()
 
     await template.ctx.wizard.next()
   } catch (e) {
@@ -85,7 +110,7 @@ secondStep.command("/upload", async ctx => {
     template.text = "addproduct_scene_name_message"
 
     if (template.ctx.wizard.state.data.media.length == 0) {
-      template.text = "addproduct_scene_photo_empty_error_checks"
+      template.text = "addproduct_scene_media_empty_error_checks"
 
       return await template.replyWithHTML()
     }
@@ -214,7 +239,7 @@ sixthStep.on("text", async ctx => {
     template.text = "addproduct_scene_delivery_product_message"
     let input = template.ctx.message.text
 
-    if (!validator.isFloat(input) || !validator.isNumeric(input)) {
+    if (!validator.isFloat(input) || !validator.isNumeric(input) || input < 0) {
       template.text = "addproduct_scene_price_numericfloat_error_checks"
 
       return await template.replyWithHTML()
@@ -242,7 +267,7 @@ deliveryStep.on("text", async ctx => {
 
     await template.generateButton(3, currency, "currencies")
 
-    if (!validator.isFloat(input) || !validator.isNumeric(input)) {
+    if (!validator.isFloat(input) || !validator.isNumeric(input) || input < 0) {
       template.text = "addproduct_scene_delivery_numericfloat_error_checks"
 
       return await template.replyWithHTML()
@@ -288,7 +313,7 @@ eighthStep.on("text", async ctx => {
 
     await template.generateButton(2, ["yes", "no"], "confirm")
 
-    if (!validator.isNumeric(input)) {
+    if (!validator.isNumeric(input) || input <= 0) {
       template.text = "addproduct_scene_count_numeric_error_checks"
 
       return await template.replyWithHTML()
@@ -318,7 +343,6 @@ ninthStep.action(/confirm_(yes|no)_(.+)/, async ctx => {
       ) {
         let product = new template.ctx.db.Product()
         product.user = template.ctx.session.user._id
-        product.uuid = uuidv4()
         product.name = template.ctx.wizard.state.data.name.replace(/  +/g, " ")
         product.description =
           template.ctx.wizard.state.data.description.replace(/  +/g, " ")
@@ -335,7 +359,6 @@ ninthStep.action(/confirm_(yes|no)_(.+)/, async ctx => {
         product.count = template.ctx.wizard.state.data.count
         product.status = 0
         product.currency = template.ctx.wizard.state.data.currency
-        console.log(product)
         await product.save()
         template.text = "addproduct_scene_success_checks"
       } else {

@@ -14,4 +14,8 @@ composer.action(
   async ctx => await controller.myproducts(ctx)
 )
 
+composer.command("addproduct", async ctx => await controller.command(ctx))
+
+composer.command("myproducts", async ctx => await controller.command(ctx))
+
 module.exports = composer

@@ -12,7 +12,7 @@ class Template {
   obj = undefined
 
   text = undefined
-  keyboard = undefined
+  keyboard = Markup.inlineKeyboard([[], [], [], []])
   query = {}
 
   rounding = 5
@@ -25,23 +25,42 @@ class Template {
   sort = new Sort()
 
   async replyWithHTML() {
+    console.log(this.ctx.session)
     if (this.keyboard == undefined) {
-      await this.ctx.replyWithHTML(this.ctx.i18n.t(this.text))
+      await this.ctx.replyWithHTML(
+        this.ctx.i18n.t(this.text, {
+          ctx: this.ctx,
+        })
+      )
     } else {
-      await this.ctx.replyWithHTML(this.ctx.i18n.t(this.text), {
-        reply_markup: this.keyboard.reply_markup,
-      })
+      await this.ctx.replyWithHTML(
+        this.ctx.i18n.t(this.text, {
+          ctx: this.ctx,
+        }),
+        {
+          reply_markup: this.keyboard.reply_markup,
+        }
+      )
     }
   }
 
   async editMessageText() {
     if (this.keyboard == undefined) {
-      await this.ctx.editMessageText(this.ctx.i18n.t(this.text))
+      await this.ctx.editMessageText(
+        this.ctx.i18n.t(this.text, {
+          ctx: this.ctx,
+        })
+      )
     } else {
-      await this.ctx.editMessageText(this.ctx.i18n.t(this.text), {
-        reply_markup: this.keyboard.reply_markup,
-        parse_mode: "HTML",
-      })
+      await this.ctx.editMessageText(
+        this.ctx.i18n.t(this.text, {
+          ctx: this.ctx,
+        }),
+        {
+          reply_markup: this.keyboard.reply_markup,
+          parse_mode: "HTML",
+        }
+      )
     }
   }
 
@@ -67,7 +86,7 @@ class Template {
       keyboard.push(
         c.map(name =>
           Markup.button.callback(
-            name,
+            this.ctx.i18n.t(name),
             callback + "_" + name + "_" + this.ctx.session.callback_query
           )
         )
@@ -82,7 +101,7 @@ class Template {
     if (this.ctx.session.ids.length > 1) {
       if (this.obj.id == 0) {
         this.createButton(
-          2,
+          3,
           "callback",
           "next",
           `product_${parseInt(this.obj.id) + 1}_media_0_action_${name}_${
@@ -94,7 +113,7 @@ class Template {
         this.obj.id < parseInt(this.ctx.session.ids.length) - 1
       ) {
         this.createButton(
-          2,
+          3,
           "callback",
           "prev",
           `product_${parseInt(this.obj.id) - 1}_media_0_action_${name}_${
@@ -102,7 +121,7 @@ class Template {
           }`
         )
         this.createButton(
-          2,
+          3,
           "callback",
           "next",
           `product_${parseInt(this.obj.id) + 1}_media_0_action_${name}_${
@@ -111,7 +130,7 @@ class Template {
         )
       } else {
         this.createButton(
-          2,
+          3,
           "callback",
           "prev",
           `product_${parseInt(this.obj.id) - 1}_media_0_action_${name}_${

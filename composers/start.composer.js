@@ -1,12 +1,12 @@
 const { Composer, Markup } = require("telegraf")
 const composer = new Composer()
 
-const Controller = require("./../controllers/start.controller")
+const Controller = require("./../controllers/controller")
 const controller = new Controller()
 
-composer.command("start", async ctx => await controller.start(ctx))
+composer.command("start", async ctx => await controller.command(ctx))
 
-composer.command("help", async ctx => await controller.help(ctx))
+composer.command("help", async ctx => await controller.command(ctx))
 
 composer.command("fakes", async ctx => {
   const randomstring = require("randomstring")

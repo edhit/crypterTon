@@ -1,5 +1,3 @@
-const { Markup } = require("telegraf")
-
 const Template = require("./template")
 
 class Sales extends Template {
@@ -21,9 +19,7 @@ class Sales extends Template {
       this.query.order.wallet.wallet.wallet +
       "\n🏷️ " +
       this.query.order.amount +
-      " TON\n✉️ " +
-      this.query.order.uuid +
-      "</pre>\n\n⚡️ " +
+      " TON </pre>\n\n ⚡️" +
       this.ctx.i18n.t(order[this.query.order.status])
   }
 
@@ -31,7 +27,6 @@ class Sales extends Template {
     try {
       if (this.obj == undefined) return
 
-      this.keyboard = Markup.inlineKeyboard([[], [], []])
       this.query.order = await this.ctx.db.Order.findOne({
         _id: this.ctx.session.ids[this.obj.id]._id,
       })
@@ -56,7 +51,7 @@ class Sales extends Template {
       }
 
       await this.createButton(
-        1,
+        2,
         "url",
         "sendMessage", //✉️
         "https://t.me/" + this.query.order.user.username

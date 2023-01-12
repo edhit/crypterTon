@@ -27,8 +27,8 @@ class Scene {
       }
 
       let entries = Object.fromEntries(new Map(data))
-      console.log(entries)
-      console.log(data)
+      // console.log(entries)
+      // console.log(data)
 
       let obj = {
         id: entries.product,
@@ -78,14 +78,14 @@ class Scene {
           product.obj = obj
           await product.view()
           break
-        case "canceltransation":
+        case "backproduct":
           product.obj = obj
 
-          product.query.order = await product.ctx.db.Order.findOneAndDelete({
-            product: product.ctx.session.ids[product.obj.id]._id,
-            user: product.ctx.session.user._id,
-            payment_status: 0,
-          })
+          // product.query.order = await product.ctx.db.Order.findOneAndDelete({
+          //   product: product.ctx.session.ids[product.obj.id]._id,
+          //   user: product.ctx.session.user._id,
+          //   payment_status: 0,
+          // })
 
           await product.view()
           break

@@ -4,7 +4,7 @@ const boot = async (ctx, next) => {
   await session.startTransaction()
   try {
     if (ctx.chat == undefined) throw "stop bot"
-    // let handler = await ctx.helpers.handlerData(ctx);
+
     let query_user = await ctx.db.User.findOne({
       user: ctx.chat.id,
     })

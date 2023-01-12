@@ -1,5 +1,3 @@
-const { Markup } = require("telegraf")
-
 const Template = require("./template")
 
 class Start extends Template {
@@ -12,12 +10,11 @@ class Start extends Template {
 
   async view() {
     try {
-      // console.log(this.ctx.session)
-      // await this.protect.reset(this.ctx)
-      // await this.protect.new(this.ctx)
-
       this.text = "start__message"
-      this.keyboard = Markup.inlineKeyboard([[], [], [], []])
+
+      // this.query.general = await this.ctx.db.General.findOne({
+      //   id: process.env.GENERAL_ID,
+      // })
 
       await this.createButton(
         0,

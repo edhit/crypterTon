@@ -10,4 +10,6 @@ composer.action(/purchases_(.+)/, async ctx => await controller.purchases(ctx))
 
 composer.action(/sales_(.+)/, async ctx => await controller.sales(ctx))
 
+composer.command("orders", async ctx => await controller.command(ctx))
+
 module.exports = composer

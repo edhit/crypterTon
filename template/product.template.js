@@ -1,5 +1,4 @@
 require("dotenv").config()
-const { Markup } = require("telegraf")
 
 const Template = require("./template")
 
@@ -42,8 +41,6 @@ class Product extends Template {
   async view() {
     try {
       if (this.obj == undefined) return
-
-      this.keyboard = Markup.inlineKeyboard([[], [], []])
 
       this.query.product = await this.ctx.db.Product.findOne({
         _id: this.ctx.session.ids[this.obj.id]._id,
@@ -121,7 +118,7 @@ class Product extends Template {
           this.ctx.session.user._id.toString()
       ) {
         await this.createButton(
-          1,
+          2,
           "url",
           "sendMessage", //✉️
           "https://t.me/" + this.query.product.user.username
@@ -148,7 +145,7 @@ class Product extends Template {
 
       if (this.ctx.session.__scenes.current == "search") {
         await this.createButton(
-          1,
+          2,
           "callback",
           "sort",
           "sort_" + this.ctx.session.callback_query

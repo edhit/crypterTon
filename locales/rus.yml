@@ -1,10 +1,121 @@
-# Global and Text
+# Global
 
 # language
 rus: 🇷🇺 Русский
 eng: 🇬🇧 English
-#checks
 
+#text
+medias: Медиа файла(ов)
+sold: Продано
+left: из
+instruction_pay: '
+
+<b><i>Способы оплаты</i></b>
+
+<i>
+1. Отсканируйте код через приложение (Tonkeeper, Tonhub) или другое официальное приложение TON
+
+2. Отправьте точную сумму на кошелек TON
+
+3. После оплаты, нажмите на <b>"Подтвердить"</b>
+</i>
+'
+           
 # Messages
+start__message: Рады Вас видеть <b>${ctx.session.user.username}</b>
+
+search_scene_message: Введите поисковый запрос
+
+settings__message: Настройки
+
+orders__message: Заказы
+
+search_scene_nothingfound_error_checks: По Вашему запросу ничего не найдено
+
+sales_scene_nothingfound_error_checks: Нет продаж
+
+purchases_scene_nothingfound_error_checks: Нет покупок
+
+sort_product_select_scene_message: "
+
+Выберете метод сортировки 
+
+
+Показать:
+"
+
+wallet_scene_message: Введите TON адрес, куда отправлять монеты
+wallet_scene_incorrect_error_checks: Неверно введен адрес
+wallet_scene_success_checks: Адрес изменен
+
+language_select_scene_message: Выберете язык
+language_scene_success_checks: Язык бота изменен
+
+currency_select_scene_message: Выберете валюту
+currency_scene_success_checks: Валюта бота изменена
+
+addproduct_scene_media_message: Отправьте фото или видео
+addproduct_scene_photo_success_checks: Фото загруженно /upload
+addproduct_scene_video_success_checks: Видео загруженно /upload
+addproduct_scene_media_many_error_checks: Загруженно много файлов /upload
+addproduct_scene_media_empty_error_checks: Отправьте фото для товара
+addproduct_scene_name_message: Введите название
+addproduct_scene_name_length_error_checks: Слишком длинное название
+addproduct_scene_name_checker_url_error_checks: Уберите ссылки с название
+addproduct_scene_name_checker_phone_error_checks: Уберите номера телефонов с название
+addproduct_scene_description_message: Введите описание
+addproduct_scene_description_length_error_checks: Слишком длинное описание
+addproduct_scene_description_checker_url_error_checks: Уберите ссылки с описания
+addproduct_scene_description_checker_phone_error_checks: Уберите номера телефонов с описания
+addproduct_scene_tags_message: Введите ключевые слова через пробел
+addproduct_scene_tags_length_error_checks: Слишком много ключевых слов
+addproduct_scene_tags_checker_url_error_checks: Уберите ссылки с ключевых слов
+addproduct_scene_tags_checker_phone_error_checks: Уберите номера телефонов с ключевых слов
+addproduct_scene_price_message: Введите цену на товар
+addproduct_scene_price_numericfloat_error_checks: Цена вводится цифрами) Вместо запятой - точка
+addproduct_scene_delivery_product_message: Введите цену доствка товара
+addproduct_scene_delivery_numericfloat_error_checks: Цена вводится цифрами) Вместо запятой - точка
+addproduct_scene_currency_product_message: Выбрете валюту
+addproduct_scene_count_product_message: Введите количество товара
+addproduct_scene_confirm_product_message: Создать объявление?
+addproduct_scene_success_checks: Объявление созданно
 
 # Buttons
+addproduct: Добавить товар
+myproducts: Объявления
+search: Поиск
+wishlist: Избранное
+orders: Заказы
+settings: Настройки
+
+same_picture: 🟢
+picture: 🌌
+edit: Редактировать
+next: ➡️
+prev: ⬅️
+reserve: 💰 Купить
+deletefromwishlist: 💔 Удалить
+addtowishlist: ❤️ Сохранить
+sendMessage: 📤 Написать продавцу
+sort: 📊Сортировка
+confirm: Подтвердить
+pay: Отплатить
+back: Назад
+transaction: Посмотреть транзакцию
+
+wallet: 👛 Кошелек
+language: 🗣 Язык
+currency: $ Валюта
+
+purchases: Покупки
+sales: Продажи
+
+all: Все
+paid: Оплаченые
+new: Новые
+sent: Отправленные
+success: Завершенные
+canceled: Отмененные
+
+yes: Да
+no: Нет

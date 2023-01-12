@@ -10,22 +10,23 @@ const { db } = require("./database")
 const admin = [5781529295]
 
 const i18n = new TelegrafI18n({
+  useSession: true,
   defaultLanguage: "en",
   directory: path.resolve(__dirname, "locales"),
 })
 const stage = new Scenes.Stage([
   // require("./scenes/calc.scene"),
-  require("./scenes/settings.scene"), // deleteMessage
-  require("./scenes/orders.scene"), // deleteMessage
-  require("./scenes/start.scene"), // deleteMessage
+  require("./scenes/settings.scene"), // deleteMessage (main)
+  require("./scenes/orders.scene"), // deleteMessage (main)
+  require("./scenes/start.scene"), // (main)
   require("./scenes/help.scene"),
-  require("./scenes/wallet.scene"),
+  require("./scenes/wallet.scene"), // text (conrtroller)
   require("./scenes/language.scene"),
   require("./scenes/currency.scene"),
-  require("./scenes/addproduct.scene"), // deleteMessage
-  require("./scenes/search.scene"), // same | // deleteMessage
-  require("./scenes/wishlist.scene"), // same | // deleteMessage
-  require("./scenes/myproducts.scene"), // same | // deleteMessage
+  require("./scenes/addproduct.scene"), // deleteMessage (main)
+  require("./scenes/search.scene"), // same | // deleteMessage (main) | // text (conrtroller)
+  require("./scenes/wishlist.scene"), // same | // deleteMessage (main)
+  require("./scenes/myproducts.scene"), // same | // deleteMessage (main)
   require("./scenes/purchases.scene"), // same
   require("./scenes/sales.scene"), // same
 ])

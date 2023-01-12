@@ -1,5 +1,3 @@
-const { Markup } = require("telegraf")
-
 const Template = require("./template")
 
 class Settings extends Template {
@@ -13,7 +11,6 @@ class Settings extends Template {
   async view() {
     try {
       this.text = "settings__message"
-      this.keyboard = Markup.inlineKeyboard([[], [], []])
 
       await this.createButton(
         0,
@@ -34,7 +31,7 @@ class Settings extends Template {
         "currency_" + this.ctx.session.callback_query
       )
 
-      await this.editMessageText()
+      await this.replyWithHTML()
     } catch (e) {
       console.log(e)
     }

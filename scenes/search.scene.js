@@ -4,10 +4,9 @@ const Template = require("./../template/product.template")
 const Scene = require("./scene")
 
 const firstStep = new Composer()
-firstStep.on("callback_query", async ctx => {
+firstStep.action(/search_(.+)/, async ctx => {
   try {
     const template = new Template(ctx)
-    await template.protect.new(ctx)
 
     template.text = "search_scene_message"
 
@@ -19,10 +18,25 @@ firstStep.on("callback_query", async ctx => {
   }
 })
 
+firstStep.command("search", async ctx => {
+  try {
+    const template = new Template(ctx)
+
+    template.text = "search_scene_message"
+
+    await template.replyWithHTML()
+
+    return template.ctx.wizard.next()
+  } catch (e) {
+    console.error(e)
+  }
+})
+
 const secondStep = new Composer()
 secondStep.on("text", async ctx => {
   try {
     const template = new Template(ctx)
+    await template.protect.new(ctx)
 
     let sorting = await template.sort.product()
 
@@ -30,7 +44,6 @@ secondStep.on("text", async ctx => {
 
     template.query.product = await template.ctx.db.Product.find({
       $text: { $search: template.ctx.session.input },
-      checks: "0",
       status: 0,
       user: { $ne: template.ctx.session.user._id },
     })
@@ -106,7 +119,6 @@ secondStep.action(/select_(.+)/, async ctx => {
 
     template.query.product = await template.ctx.db.Product.find({
       $text: { $search: template.ctx.session.input },
-      checks: "0",
       status: 0,
       user: { $ne: template.ctx.session.user._id },
     })
@@ -137,5 +149,14 @@ secondStep.action(/select_(.+)/, async ctx => {
 })
 
 const scene = new Scenes.WizardScene("search", firstStep, secondStep)
+
+// const controller = new Controller()
+// scene.command("start", async ctx => await controller.command(ctx))
+// scene.command("addproduct", async ctx => await controller.command(ctx))
+// scene.command("myproducts", async ctx => await controller.command(ctx))
+// scene.command("search", async ctx => await controller.command(ctx))
+// scene.command("wishlist", async ctx => await controller.command(ctx))
+// scene.command("orders", async ctx => await controller.command(ctx))
+// scene.command("settings", async ctx => await controller.command(ctx))
 
 module.exports = scene

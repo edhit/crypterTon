@@ -1,5 +1,3 @@
-const { Markup } = require("telegraf")
-
 const Template = require("./template")
 
 class Order extends Template {
@@ -17,7 +15,6 @@ class Order extends Template {
       // }).select("_id")
 
       this.text = "orders__message"
-      this.keyboard = Markup.inlineKeyboard([[], [], []])
 
       await this.createButton(
         0,
@@ -32,7 +29,7 @@ class Order extends Template {
         "sales_" + this.ctx.session.callback_query
       )
 
-      await this.editMessageText()
+      await this.replyWithHTML()
     } catch (e) {
       console.log(e)
     }

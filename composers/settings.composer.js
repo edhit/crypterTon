@@ -12,4 +12,6 @@ composer.action(/language_(.+)/, async ctx => await controller.language(ctx))
 
 composer.action(/currency_(.+)/, async ctx => await controller.currency(ctx))
 
+composer.command("settings", async ctx => await controller.command(ctx))
+
 module.exports = composer

@@ -1,5 +1,3 @@
-const { Markup } = require("telegraf")
-
 const Template = require("./template")
 
 class Help extends Template {

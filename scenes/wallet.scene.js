@@ -3,7 +3,7 @@ const { Composer, Scenes, Markup } = require("telegraf")
 const Template = require("./../template/template")
 
 const firstStep = new Composer()
-firstStep.on("callback_query", async ctx => {
+firstStep.action(/wallet_(.+)/, async ctx => {
   try {
     const template = new Template(ctx)
 
@@ -39,7 +39,7 @@ secondStep.on("text", async ctx => {
       return await template.replyWithHTML()
     }
 
-    template.query.user = input
+    template.query.user.wallet = input
     await template.query.user.save()
 
     await template.replyWithHTML()
@@ -55,5 +55,14 @@ secondStep.on("text", async ctx => {
 })
 
 const scene = new Scenes.WizardScene("wallet", firstStep, secondStep)
+
+// const controller = new Controller()
+// scene.command("start", async ctx => await controller.command(ctx))
+// scene.command("addproduct", async ctx => await controller.command(ctx))
+// scene.command("myproducts", async ctx => await controller.command(ctx))
+// scene.command("search", async ctx => await controller.command(ctx))
+// scene.command("wishlist", async ctx => await controller.command(ctx))
+// scene.command("orders", async ctx => await controller.command(ctx))
+// scene.command("settings", async ctx => await controller.command(ctx))
 
 module.exports = scene

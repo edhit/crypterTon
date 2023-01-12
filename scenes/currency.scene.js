@@ -3,7 +3,7 @@ const { Composer, Scenes, Markup } = require("telegraf")
 const Template = require("./../template/template")
 
 const firstStep = new Composer()
-firstStep.on("callback_query", async ctx => {
+firstStep.action(/currency_(.+)/, async ctx => {
   try {
     const template = new Template(ctx)
 

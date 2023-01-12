@@ -4,10 +4,9 @@ const Template = require("./../template/purchases.template")
 const Scene = require("./scene")
 
 const firstStep = new Composer()
-firstStep.on("callback_query", async ctx => {
+firstStep.action(/purchases_(.+)/, async ctx => {
   try {
     const template = new Template(ctx)
-    await template.protect.new(ctx)
 
     let sorting = await template.sort.orders()
 
@@ -122,8 +121,6 @@ secondStep.action(/select_(.+)/, async ctx => {
       }
       return await template.view()
     }
-
-    template.keyboard = Markup.inlineKeyboard([[], [], []])
 
     await template.createButton(
       1,

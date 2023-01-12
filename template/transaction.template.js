@@ -1,7 +1,5 @@
 require("dotenv").config()
-const { Markup } = require("telegraf")
 const moment = require("moment")
-const { v4: uuidv4 } = require("uuid")
 
 const Template = require("./template")
 
@@ -33,18 +31,16 @@ class Transaction extends Template {
           "ton://transfer/" +
             this.query.order.wallet.wallet.wallet +
             "?amount=" +
-            (await this.payments.toNano(this.query.amount.toString())) +
-            "&text=" +
-            this.query.order.uuid
+            (await this.payments.toNano(this.query.amount.toString()))
         )
 
         await this.createButton(
           1,
           "callback",
-          "cancel",
+          "back",
           "product_" +
             this.obj.id +
-            "_media_0_action_canceltransation_" +
+            "_media_0_action_backproduct_" +
             this.ctx.session.callback_query
         )
 
@@ -58,9 +54,7 @@ class Transaction extends Template {
           this.query.amount +
           " TON (+" +
           this.query.order.fee.toFixed(this.rounding) +
-          " TON)\n✉️ " +
-          this.query.order.uuid +
-          "</pre>\n\n " +
+          " TON) </pre>\n\n" +
           this.ctx.i18n.t("instruction_pay") +
           "\n\n<b>🕒 " +
           this.ctx.i18n.t("left") +
@@ -69,11 +63,6 @@ class Transaction extends Template {
             moment(this.query.order.createdAt).add("15", "m").valueOf() -
               moment().valueOf()
           ).format("mm:ss")
-
-        // "Способы оплаты \n \
-        // 1. Отсканируйте код через приложение (Tonkeeper, Tonhub) \n\n\
-        // 2. Отправьте точную сумму на кошелек TON с указанием комментария"
-        // 3. Без uuid мы не сможем вернуть средства
         break
       case 1:
         let payment = await this.status.payment()
@@ -89,7 +78,7 @@ class Transaction extends Template {
           "back",
           "product_" +
             this.obj.id +
-            "_media_0_action_canceltransation_" +
+            "_media_0_action_backproduct_" +
             this.ctx.session.callback_query
         )
 
@@ -105,8 +94,6 @@ class Transaction extends Template {
   async view() {
     try {
       if (this.obj == undefined) return
-
-      this.keyboard = Markup.inlineKeyboard([[], [], []])
 
       this.query.product = await this.ctx.db.Product.findOne({
         _id: this.ctx.session.ids[this.obj.id]._id,
@@ -129,16 +116,13 @@ class Transaction extends Template {
           parseInt(process.env.FEE)
 
         let toncoin = await this.payments.createWallet()
-        let uuid = uuidv4()
         let address = this.ctx.db.Address()
         address.user = this.ctx.session.user._id
         address.wallet = toncoin
-        address.uuid = uuid
         address.save()
         let order = this.ctx.db.Order()
         order.user = this.ctx.session.user._id
         order.product = this.ctx.session.ids[this.obj.id]._id
-        order.uuid = uuid
         order.wallet = address._id
         order.amount = (
           (this.query.product.price + this.query.product.delivery) /
@@ -165,7 +149,7 @@ class Transaction extends Template {
           moment(this.query.order.createdAt).add("15", "m").valueOf() <
           moment().valueOf()
         ) {
-          // console.log("15m")
+          console.log("15m")
           this.query.order.delete()
           return await this.view()
         } else {
@@ -199,9 +183,7 @@ class Transaction extends Template {
           "ton://transfer/" +
             this.query.order.wallet.wallet.wallet +
             "?amount=" +
-            (await this.payments.toNano(this.query.amount.toString())) +
-            "&text=" +
-            this.query.order.uuid
+            (await this.payments.toNano(this.query.amount.toString()))
         )
         await this.textTemplate()
       } else {

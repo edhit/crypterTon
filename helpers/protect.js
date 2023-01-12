@@ -7,7 +7,9 @@ class Protect {
       let callback = update.pop()
 
       if (callback != ctx.session.callback_query) throw "callback_query is old"
+
       await ctx.answerCbQuery(ctx.i18n.t("wait"), false)
+
       return {
         update: update,
         callback: callback,
