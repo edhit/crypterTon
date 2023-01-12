@@ -42,7 +42,7 @@ const coingecko = async () => {
       general.currency = "rub"
       general.date = moment().valueOf()
       general.save()
-      console.log(request.data)
+      // console.log(request.data)
     } else {
       if (
         moment(query_general.updatedAt).add("1", "m").valueOf() <
@@ -52,7 +52,7 @@ const coingecko = async () => {
         query_general.coins = request.data
         query_general.date = moment().valueOf()
         query_general.save()
-        console.log(request.data)
+        console.log("1")
       }
     }
     setTimeout(coingecko, 30000)
